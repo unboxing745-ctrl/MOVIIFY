@@ -11,10 +11,10 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       <main className="flex-1">
-        <section className="relative flex flex-col items-center justify-center text-center pt-20 pb-20 md:pb-32 lg:pb-40 bg-background text-foreground">
+        <section className="relative flex flex-col items-center justify-center text-center min-h-screen bg-background text-foreground">
            <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background" />
-           <div className="relative z-10 space-y-6">
-             <MoviifyLogo className="w-80 md:w-96 h-auto text-primary" />
+           <div className="relative z-10 space-y-6 px-4">
+             <MoviifyLogo className="w-80 md:w-96 h-auto text-primary mx-auto" />
               <p className="text-xl md:text-2xl text-foreground/80">
                 Discover your next favorite film.
               </p>
