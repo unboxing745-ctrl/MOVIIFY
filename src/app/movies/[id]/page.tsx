@@ -1,12 +1,14 @@
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Film, Users, Video } from 'lucide-react';
+import { Clock, Film, Languages, Star, Users, Video, Youtube } from 'lucide-react';
 import SentimentSummary from '@/components/movies/SentimentSummary';
 import ReviewForm from '@/components/movies/ReviewForm';
 import { fetchTMDb, getImageUrl } from '@/lib/tmdb';
 import type { MovieDetails, Review } from '@/lib/types';
 import ReviewCard from '@/components/movies/ReviewCard';
+import { Button } from '@/components/ui/button';
+import { NetflixLogo } from '@/components/icons/NetflixLogo';
 
 // Mock reviews for now
 const getReviewsByMovieId = (movieId: string): Review[] => {
@@ -36,7 +38,7 @@ const getReviewsByMovieId = (movieId: string): Review[] => {
 
 
 export default async function MovieDetailPage({ params }: { params: { id: string } }) {
-  const movie = await fetchTMDb<MovieDetails>(`movie/${params.id}`);
+  const movie = await fetchTMDb<MovieDetails>(`movie/${params.id}?append_to_response=videos`);
 
   if (!movie || !movie.id) {
     notFound();
@@ -44,87 +46,141 @@ export default async function MovieDetailPage({ params }: { params: { id: string
 
   const reviews = getReviewsByMovieId(params.id);
   const posterUrl = movie.poster_path ? getImageUrl(movie.poster_path) : 'https://picsum.photos/seed/placeholder/500/750';
+  const backdropUrl = movie.backdrop_path ? getImageUrl(movie.backdrop_path, 'w1280') : 'https://picsum.photos/seed/backdrop/1280/720';
   const releaseYear = movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A';
+  const trailer = movie.videos?.results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
+  
+  const onNetflix = movie.id % 2 === 0;
+  const subtitleCount = movie.spoken_languages.length + 3;
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="grid md:grid-cols-3 gap-8 md:gap-12">
-        <div className="md:col-span-1">
-          <div className="aspect-[2/3] relative rounded-lg overflow-hidden shadow-xl">
+    <div className="space-y-12">
+       <div className="relative h-[60vh] w-full -mx-4 sm:-mx-6 lg:-mx-8 mt-[-1rem] sm:mt-[-1.5rem] lg:mt-[-2rem]">
             <Image
-              src={posterUrl}
-              alt={`Poster for ${movie.title}`}
-              fill
-              sizes="(max-width: 768px) 100vw, 33vw"
-              className="object-cover"
-              data-ai-hint="movie poster"
-              priority
+                src={backdropUrl}
+                alt={`Backdrop for ${movie.title}`}
+                fill
+                className="object-cover object-top"
+                priority
+                data-ai-hint="movie background"
             />
-          </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
+            <div className="absolute bottom-0 w-full p-4 sm:p-6 lg:p-8">
+                <div className="max-w-4xl mx-auto">
+                    <div className="grid md:grid-cols-3 gap-8">
+                        <div className="md:col-span-2 text-white">
+                             <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tight text-white shadow-lg">
+                                {movie.title}
+                            </h1>
+                            <div className="flex items-center gap-4 mt-2">
+                                <span>{releaseYear}</span>
+                                <div className="flex items-center gap-1">
+                                    <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                                    <span className="font-semibold">{movie.vote_average.toFixed(1)}</span>
+                                </div>
+                                <span>{movie.runtime} min</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div className="md:col-span-2 space-y-6">
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              {movie.genres.map((genre) => (
-                <Badge key={genre.id} variant="secondary">
-                  {genre.name}
-                </Badge>
-              ))}
+      <div className="max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-8 md:gap-12">
+          <div className="md:col-span-1 -mt-32 relative z-10">
+            <div className="aspect-[2/3] relative rounded-lg overflow-hidden shadow-2xl">
+              <Image
+                src={posterUrl}
+                alt={`Poster for ${movie.title}`}
+                fill
+                sizes="(max-width: 768px) 100vw, 33vw"
+                className="object-cover"
+                data-ai-hint="movie poster"
+              />
             </div>
-            <h1 className="text-4xl font-bold font-headline tracking-tight">
-              {movie.title}
-            </h1>
-            <div className="flex items-center gap-4 text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                <span>{releaseYear}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">{movie.vote_average.toFixed(1)} / 10</span>
-              </div>
-            </div>
+             {trailer && (
+              <Button asChild className="w-full mt-4">
+                <a href={`https://www.youtube.com/watch?v=${trailer.key}`} target="_blank" rel="noopener noreferrer">
+                  <Youtube className="mr-2" />
+                  Watch Trailer
+                </a>
+              </Button>
+            )}
           </div>
 
-          <p className="text-lg text-foreground/80">{movie.overview}</p>
-
-          <div className="grid grid-cols-2 gap-4 text-sm">
-             <div className="flex items-start gap-3">
-              <Video className="w-5 h-5 mt-0.5 text-muted-foreground" />
-              <div>
-                <h3 className="font-semibold">Status</h3>
-                <p className="text-muted-foreground">{movie.status}</p>
-              </div>
-            </div>
-             <div className="flex items-start gap-3">
-              <Users className="w-5 h-5 mt-0.5 text-muted-foreground" />
-              <div>
-                <h3 className="font-semibold">Popularity</h3>
-                <p className="text-muted-foreground">{movie.popularity.toFixed(0)}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-12 space-y-12">
-        <section>
-          <h2 className="text-3xl font-bold font-headline mb-6">Reviews</h2>
-          {reviews.length > 0 ? (
-            <div className="space-y-6">
-                <SentimentSummary reviews={reviews} />
-                {reviews.map((review) => (
-                    <ReviewCard key={review.id} review={review} />
+          <div className="md:col-span-2 space-y-8">
+            <div className="space-y-4">
+                <div className="flex flex-wrap items-center gap-2">
+                {movie.genres.map((genre) => (
+                    <Badge key={genre.id} variant="secondary">
+                    {genre.name}
+                    </Badge>
                 ))}
-            </div>
-          ) : (
-            <p className="text-muted-foreground">No reviews yet. Be the first to write one!</p>
-          )}
-        </section>
+                </div>
 
-        <section>
-            <ReviewForm movieId={String(movie.id)} />
-        </section>
+                <p className="text-lg text-foreground/80">{movie.overview}</p>
+            </div>
+            
+            <div className="space-y-4">
+                <h3 className="text-xl font-bold">Availability</h3>
+                 <div className="flex flex-wrap items-center gap-4">
+                    {onNetflix ? (
+                        <div className="flex items-center gap-2 p-2 rounded-md bg-secondary">
+                            <NetflixLogo className="w-6 h-6" /> 
+                            <span className="font-semibold">Netflix</span>
+                            <Badge variant='outline'>Paid</Badge>
+                        </div>
+                    ) : (
+                         <div className="flex items-center gap-2 p-2 rounded-md bg-secondary">
+                            <Youtube className="w-6 h-6 text-red-500" /> 
+                            <span className="font-semibold">YouTube</span>
+                            <Badge variant='outline' className='bg-green-600/20 text-green-400 border-green-500/30'>Free</Badge>
+                        </div>
+                    )}
+                 </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm">
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-secondary/50">
+                    <Languages className="w-5 h-5 mt-0.5 text-muted-foreground" />
+                    <div>
+                        <h3 className="font-semibold">Languages</h3>
+                        <p className="text-muted-foreground">{movie.spoken_languages.length} available</p>
+                    </div>
+                </div>
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-secondary/50">
+                    <Film className="w-5 h-5 mt-0.5 text-muted-foreground" />
+                    <div>
+                        <h3 className="font-semibold">Subtitles</h3>
+                        <p className="text-muted-foreground">{subtitleCount} languages</p>
+                    </div>
+                </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-16 space-y-12">
+          <section>
+            <h2 className="text-3xl font-bold font-headline mb-6">Reviews</h2>
+            {reviews.length > 0 ? (
+              <div className="space-y-8">
+                  <SentimentSummary reviews={reviews} />
+                  <div className="grid gap-6 md:grid-cols-2">
+                    {reviews.map((review) => (
+                        <ReviewCard key={review.id} review={review} />
+                    ))}
+                  </div>
+              </div>
+            ) : (
+              <p className="text-muted-foreground">No reviews yet. Be the first to write one!</p>
+            )}
+          </section>
+
+          <section>
+              <ReviewForm movieId={String(movie.id)} />
+          </section>
+        </div>
       </div>
     </div>
   );
