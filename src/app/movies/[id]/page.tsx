@@ -93,6 +93,7 @@ export default function MovieDetailPage() {
   ].filter((v, i, a) => a.indexOf(v) === i); // Remove duplicates
 
   const watchProviders = details['watch/providers']?.results?.US;
+  const availableProviders = watchProviders?.flatrate || watchProviders?.free;
 
 
   return (
@@ -167,30 +168,32 @@ export default function MovieDetailPage() {
             </div>
         </div>
 
-        {watchProviders && (watchProviders.flatrate || watchProviders.free) && (
-            <div className="space-y-4">
-                <h2 className="text-2xl font-bold flex items-center gap-3">
-                    <Video className="text-primary" />
-                    Where to Watch
-                </h2>
+        <div className="space-y-4">
+            <h2 className="text-2xl font-bold flex items-center gap-3">
+                <Video className="text-primary" />
+                Where to Watch
+            </h2>
+            {availableProviders && availableProviders.length > 0 ? (
                 <div className="flex flex-wrap items-start gap-6">
                     {watchProviders.flatrate?.map(p => (
-                        <div key={p.provider_id} className="flex flex-col items-center gap-2 text-center">
+                        <div key={p.provider_id} className="flex flex-col items-center gap-2 text-center w-20">
                             {p.provider_name === 'Netflix' ? <NetflixLogo className="h-10 w-auto" />
                             : <Image src={getImageUrl(p.logo_path, 'w92')} alt={p.provider_name} width={50} height={50} className="rounded-lg" />}
                             <span className="text-xs text-muted-foreground">{p.provider_name}</span>
                         </div>
                     ))}
                     {watchProviders.free?.map(p => (
-                        <div key={p.provider_id} className="flex flex-col items-center gap-2 text-center">
+                        <div key={p.provider_id} className="flex flex-col items-center gap-2 text-center w-20">
                             {p.provider_name === 'Netflix' ? <NetflixLogo className="h-10 w-auto" />
                             : <Image src={getImageUrl(p.logo_path, 'w92')} alt={p.provider_name} width={50} height={50} className="rounded-lg" />}
                             <span className="text-xs text-muted-foreground">{p.provider_name}</span>
                         </div>
                     ))}
                 </div>
-            </div>
-        )}
+            ) : (
+                <p className="text-muted-foreground">Streaming information is not available for this title.</p>
+            )}
+        </div>
 
       {trailer && (
         <div className="space-y-4">
