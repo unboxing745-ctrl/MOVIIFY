@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { Clapperboard, Film, Sparkles } from 'lucide-react';
+import { Clapperboard, Film, Sparkles, TrendingUp } from 'lucide-react';
 import MovieGrid from '@/components/movies/MovieGrid';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,7 +27,18 @@ export default function Home() {
            </div>
         </section>
 
-         <section className="py-8 md:py-16 px-4 md:px-8 lg:px-16">
+         <section className="py-8 md:py-16 px-4 md:px-8 lg:px-16 space-y-12">
+          <div className="space-y-8">
+            <div className="flex items-center gap-3">
+              <TrendingUp className="w-8 h-8 text-primary" />
+              <h2 className="text-3xl font-bold font-headline">
+                Trending
+              </h2>
+            </div>
+            <Suspense fallback={<div className="h-96 w-full bg-secondary animate-pulse rounded-lg" />}>
+              <MovieGrid path="trending/movie/week" horizontal={true} />
+            </Suspense>
+          </div>
           <div className="space-y-8">
             <div className="flex items-center gap-3">
               <Sparkles className="w-8 h-8 text-primary" />
