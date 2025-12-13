@@ -11,7 +11,7 @@ export default async function HeroBanner({ path }: { path: string }) {
 
   if (!featuredMovie || !featuredMovie.backdrop_path) {
     return (
-      <div className="h-[60vh] bg-secondary flex items-center justify-center">
+      <div className="h-[50vh] bg-secondary flex items-center justify-center rounded-lg">
         <p>Could not load featured movie.</p>
       </div>
     );
@@ -21,12 +21,12 @@ export default async function HeroBanner({ path }: { path: string }) {
   const releaseYear = new Date(featuredMovie.release_date).getFullYear();
 
   return (
-    <div className="relative h-[60vh] w-full">
+    <div className="relative h-[50vh] w-full rounded-lg overflow-hidden">
       <Image
         src={backdropUrl}
         alt={`Backdrop for ${featuredMovie.title}`}
         fill
-        className="object-cover object-top"
+        className="object-cover object-center"
         priority
         data-ai-hint="movie background"
       />

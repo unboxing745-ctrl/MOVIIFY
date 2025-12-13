@@ -11,6 +11,7 @@ import type { MovieResult } from '@/lib/types';
 import MovieCard from '@/components/movies/MovieCard';
 import HeroBanner from '@/components/movies/HeroBanner';
 import { Recommendations } from '@/components/movies/Recommendations';
+import SearchAndFilter from '@/components/movies/SearchAndFilter';
 
 async function MovieCarousel({
   title,
@@ -23,7 +24,7 @@ async function MovieCarousel({
 
   return (
     <section>
-      <h2 className="text-2xl font-bold font-headline mb-4 px-4 sm:px-6 lg:px-8">
+      <h2 className="text-2xl font-bold font-headline mb-4">
         {title}
       </h2>
       <Carousel
@@ -53,13 +54,17 @@ async function MovieCarousel({
 export default function Home() {
   return (
     <div className="space-y-12">
-      <Suspense fallback={<div className="h-[60vh] bg-secondary animate-pulse" />}>
+      <Suspense fallback={<div className="h-[50vh] bg-secondary animate-pulse rounded-lg" />}>
         <HeroBanner path="movie/popular" />
       </Suspense>
 
-      <div className="space-y-16">
+      <div className="space-y-16 px-4 sm:px-6 lg:px-8">
+        <Suspense fallback={<div className="h-12 w-full bg-secondary animate-pulse rounded-lg" />}>
+          <SearchAndFilter />
+        </Suspense>
+        
         <Suspense fallback={<p>Loading recommendations...</p>}>
-            <div className="px-4 sm:px-6 lg:px-8">
+            <div>
               <Recommendations />
             </div>
         </Suspense>
