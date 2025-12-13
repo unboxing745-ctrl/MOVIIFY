@@ -3,7 +3,7 @@
 
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Languages, Star, Youtube, Clapperboard, CalendarIcon, User, Video, Captions } from 'lucide-react';
+import { Star, Youtube, Clapperboard, CalendarIcon, User, Video, Captions } from 'lucide-react';
 import type { MovieDetails, TVDetails, Credits, WatchProviders } from '@/lib/types';
 import MovieReviews from '@/components/movies/MovieReviews';
 import { useEffect, useState } from 'react';
@@ -156,38 +156,35 @@ export default function MovieDetailPage() {
                             <p className="text-muted-foreground">{cast.map(c => c.name).join(', ')}</p>
                         </div>
                     )}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                    <div className="space-y-2">
+                     <div className="space-y-2">
                         <h2 className="text-xl font-bold flex items-center gap-2">
                             <Captions className="text-primary" />
                             Subtitles
                         </h2>
                         <p className="text-muted-foreground">{availableSubtitles.join(', ')}</p>
                     </div>
-
-                    {watchProviders && (watchProviders.flatrate || watchProviders.free) && (
-                        <div className="space-y-2">
-                            <h2 className="text-xl font-bold flex items-center gap-2">
-                                <Video className="text-primary" />
-                                Where to Watch
-                            </h2>
-                            <div className="flex flex-wrap items-center gap-4">
-                                {watchProviders.flatrate?.map(p => (
-                                    p.provider_name === 'Netflix' ? <NetflixLogo key={p.provider_id} className="h-6 w-auto" />
-                                    : <Image key={p.provider_id} src={getImageUrl(p.logo_path, 'w92')} alt={p.provider_name} width={40} height={40} className="rounded-md" />
-                                ))}
-                                {watchProviders.free?.map(p => (
-                                     p.provider_name === 'Netflix' ? <NetflixLogo key={p.provider_id} className="h-6 w-auto" />
-                                    : <Image key={p.provider_id} src={getImageUrl(p.logo_path, 'w92')} alt={p.provider_name} width={40} height={40} className="rounded-md" />
-                                ))}
-                            </div>
-                        </div>
-                    )}
                 </div>
             </div>
         </div>
+
+        {watchProviders && (watchProviders.flatrate || watchProviders.free) && (
+            <div className="space-y-4">
+                <h2 className="text-2xl font-bold flex items-center gap-3">
+                    <Video className="text-primary" />
+                    Where to Watch
+                </h2>
+                <div className="flex flex-wrap items-center gap-4">
+                    {watchProviders.flatrate?.map(p => (
+                        p.provider_name === 'Netflix' ? <NetflixLogo key={p.provider_id} className="h-8 w-auto" />
+                        : <Image key={p.provider_id} src={getImageUrl(p.logo_path, 'w92')} alt={p.provider_name} width={50} height={50} className="rounded-lg" />
+                    ))}
+                    {watchProviders.free?.map(p => (
+                         p.provider_name === 'Netflix' ? <NetflixLogo key={p.provider_id} className="h-8 w-auto" />
+                        : <Image key={p.provider_id} src={getImageUrl(p.logo_path, 'w92')} alt={p.provider_name} width={50} height={50} className="rounded-lg" />
+                    ))}
+                </div>
+            </div>
+        )}
 
       {trailer && (
         <div className="space-y-4">
