@@ -54,17 +54,21 @@ export default function Header() {
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem onClick={() => router.push('/search?with_genres=28')}>Action</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/search?with_genres=12')}>Adventure</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push('/search?with_genres=35')}>Comedy</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/search?with_genres=99')}>Documentary</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push('/search?with_genres=18')}>Drama</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/search?with_genres=10751')}>Family</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/search?with_genres=36')}>Historical</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push('/search?with_genres=27')}>Horror</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/search?with_genres=10749')}>Romance</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push('/search?with_genres=878')}>Sci-Fi</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/search?with_genres=53')}>Thriller</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/search?with_genres=10752')}>War</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             <Link href="/search?sort_by=vote_average.desc" className="transition-colors hover:text-primary text-foreground/80">
               Top Rated
-            </Link>
-            <Link href="/search?with_genres=10751" className="transition-colors hover:text-primary text-foreground/80">
-              Family
             </Link>
           </nav>
         </div>
