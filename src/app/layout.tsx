@@ -22,7 +22,7 @@ export default function RootLayout({
     if (isLoading) {
       setTimeout(() => {
         setIsLoading(false);
-      }, 2000);
+      }, 2500);
     }
   }, [isLoading]);
 
@@ -41,7 +41,7 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@400..900&display=swap"
           rel="stylesheet"
         />
         <link

@@ -1,6 +1,6 @@
 'use client';
 
-import { Film } from 'lucide-react';
+import { MoviifyLogo } from '@/components/icons/MoviifyLogo';
 import { cn } from '@/lib/utils';
 
 export default function SplashScreen() {
@@ -11,9 +11,9 @@ export default function SplashScreen() {
       )}
     >
       <div className="relative">
-        <Film
+        <MoviifyLogo
           className={cn(
-            'w-24 h-24 text-primary animate-pulse-grow'
+            'w-48 h-auto text-primary animate-pulse-grow'
           )}
         />
       </div>

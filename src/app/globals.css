@@ -10,7 +10,7 @@
     --card-foreground: 200 17% 93%;
     --popover: 224 71% 4%;
     --popover-foreground: 200 17% 93%;
-    --primary: 45 85% 60%;
+    --primary: 180 90% 50%;
     --primary-foreground: 224 71% 4%;
     --secondary: 215 28% 17%;
     --secondary-foreground: 200 17% 93%;
@@ -22,7 +22,7 @@
     --destructive-foreground: 0 0% 100%;
     --border: 215 28% 17%;
     --input: 215 28% 17%;
-    --ring: 45 85% 60%;
+    --ring: 180 90% 50%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -45,7 +45,7 @@
     --card-foreground: 200 17% 93%;
     --popover: 224 71% 4%;
     --popover-foreground: 200 17% 93%;
-    --primary: 45 85% 60%;
+    --primary: 180 90% 50%;
     --primary-foreground: 224 71% 4%;
     --secondary: 215 28% 17%;
     --secondary-foreground: 200 17% 93%;
@@ -57,7 +57,7 @@
     --destructive-foreground: 0 0% 100%;
     --border: 215 28% 17%;
     --input: 215 28% 17%;
-    --ring: 45 85% 60%;
+    --ring: 180 90% 50%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -106,15 +106,17 @@
   @keyframes pulse-grow {
     0%, 100% {
       transform: scale(1);
-      opacity: 1;
+      opacity: 0.8;
+      filter: drop-shadow(0 0 0.5rem hsl(var(--primary) / 0.5));
     }
     50% {
       transform: scale(1.1);
-      opacity: 0.9;
+      opacity: 1;
+      filter: drop-shadow(0 0 1.5rem hsl(var(--primary) / 0.7));
     }
   }
 
   .animate-pulse-grow {
-    animation: pulse-grow 2s ease-in-out infinite;
+    animation: pulse-grow 2.5s ease-in-out infinite;
   }
 }

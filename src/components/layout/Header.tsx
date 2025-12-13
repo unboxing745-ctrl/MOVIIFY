@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Film, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import UserAuth from './UserAuth';
 import { Button } from '../ui/button';
 import {
@@ -16,6 +16,7 @@ import SearchBar from '../search/SearchBar';
 import { useUser } from '@/firebase';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
+import { MoviifyLogo } from '../icons/MoviifyLogo';
 
 export default function Header() {
     const router = useRouter();
@@ -41,8 +42,7 @@ export default function Header() {
       <div className="container flex h-20 items-center">
         <div className="mr-4 flex items-center">
           <Link href="/" className="flex items-center gap-2 mr-6">
-            <Film className="w-6 h-6 text-primary" />
-            <span className="font-bold text-lg">MOVIIFY</span>
+            <MoviifyLogo className="w-32 h-auto" />
           </Link>
           <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
             <Link href="/" className="transition-colors hover:text-primary text-foreground/80">
@@ -83,7 +83,7 @@ export default function Header() {
                 <Button variant="ghost" asChild>
                   <Link href="/login">Login</Link>
                 </Button>
-                <Button asChild className='bg-red-600 hover:bg-red-700 text-white'>
+                <Button asChild className='bg-primary/80 hover:bg-primary text-primary-foreground'>
                   <Link href="/signup">Sign Up</Link>
                 </Button>
               </div>
