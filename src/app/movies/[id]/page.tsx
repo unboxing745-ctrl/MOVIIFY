@@ -80,7 +80,14 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
   );
 
   const onNetflix = details.id % 2 === 0;
-  const subtitleCount = details.spoken_languages.length + 3;
+  
+  const getSubtitleLanguages = () => {
+    const baseLangs = ['English', 'Spanish'];
+    const movieLangs = details.spoken_languages.slice(0, 2).map(l => l.english_name);
+    const combined = [...new Set([...baseLangs, ...movieLangs])]; // Use Set to avoid duplicates
+    return combined.join(', ');
+  }
+
 
   return (
     <div className="space-y-12">
@@ -203,7 +210,7 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
                     <div>
                       <h3 className="font-semibold">Subtitles</h3>
                       <p className="text-muted-foreground">
-                        {subtitleCount} languages
+                        {getSubtitleLanguages()}
                       </p>
                     </div>
                   </div>
