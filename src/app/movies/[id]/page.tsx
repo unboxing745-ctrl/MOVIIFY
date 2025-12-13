@@ -16,11 +16,13 @@ import {
 import { useEffect, useState } from 'react';
 import { fetchTMDb, getImageUrl } from '@/lib/tmdb';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useParams } from 'next/navigation';
 
 type DetailData = MovieDetails & TVDetails;
 
-export default function MovieDetailPage({ params: { id } }: { params: { id: string } }) {
+export default function MovieDetailPage() {
+  const params = useParams();
+  const id = params.id as string;
   const searchParams = useSearchParams();
   const type = searchParams.get('type') || 'movie';
 
@@ -104,7 +106,7 @@ export default function MovieDetailPage({ params: { id } }: { params: { id: stri
         <div className="absolute bottom-0 w-full p-4 sm:p-6 lg:p-8">
           <div className="max-w-4xl mx-auto">
             <div className="grid md:grid-cols-3 gap-8">
-              <div className="md:col-span-2 text-white">
+              <div className="md-col-span-2 text-white">
                 <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tight text-white shadow-lg">
                   {title}
                 </h1>
