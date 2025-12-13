@@ -173,14 +173,20 @@ export default function MovieDetailPage() {
                     <Video className="text-primary" />
                     Where to Watch
                 </h2>
-                <div className="flex flex-wrap items-center gap-4">
+                <div className="flex flex-wrap items-start gap-6">
                     {watchProviders.flatrate?.map(p => (
-                        p.provider_name === 'Netflix' ? <NetflixLogo key={p.provider_id} className="h-8 w-auto" />
-                        : <Image key={p.provider_id} src={getImageUrl(p.logo_path, 'w92')} alt={p.provider_name} width={50} height={50} className="rounded-lg" />
+                        <div key={p.provider_id} className="flex flex-col items-center gap-2 text-center">
+                            {p.provider_name === 'Netflix' ? <NetflixLogo className="h-10 w-auto" />
+                            : <Image src={getImageUrl(p.logo_path, 'w92')} alt={p.provider_name} width={50} height={50} className="rounded-lg" />}
+                            <span className="text-xs text-muted-foreground">{p.provider_name}</span>
+                        </div>
                     ))}
                     {watchProviders.free?.map(p => (
-                         p.provider_name === 'Netflix' ? <NetflixLogo key={p.provider_id} className="h-8 w-auto" />
-                        : <Image key={p.provider_id} src={getImageUrl(p.logo_path, 'w92')} alt={p.provider_name} width={50} height={50} className="rounded-lg" />
+                        <div key={p.provider_id} className="flex flex-col items-center gap-2 text-center">
+                            {p.provider_name === 'Netflix' ? <NetflixLogo className="h-10 w-auto" />
+                            : <Image src={getImageUrl(p.logo_path, 'w92')} alt={p.provider_name} width={50} height={50} className="rounded-lg" />}
+                            <span className="text-xs text-muted-foreground">{p.provider_name}</span>
+                        </div>
                     ))}
                 </div>
             </div>
