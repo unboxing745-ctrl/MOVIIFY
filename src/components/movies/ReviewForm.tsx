@@ -18,6 +18,9 @@ import { Star } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { useAuth, useFirestore, useUser, addDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp } from 'firebase/firestore';
+import Link from 'next/link';
 
 const reviewSchema = z.object({
   rating: z
@@ -33,6 +36,9 @@ const reviewSchema = z.object({
 export default function ReviewForm({ movieId }: { movieId: string }) {
   const [hoverRating, setHoverRating] = useState(0);
   const { toast } = useToast();
+  const firestore = useFirestore();
+  const { user } = useUser();
+
   const form = useForm<z.infer<typeof reviewSchema>>({
     resolver: zodResolver(reviewSchema),
     defaultValues: {
@@ -42,13 +48,44 @@ export default function ReviewForm({ movieId }: { movieId: string }) {
   });
 
   function onSubmit(values: z.infer<typeof reviewSchema>) {
-    console.log({ ...values, movieId });
+    if (!firestore || !user) return;
+
+    const reviewsCol = collection(firestore, `movies/${movieId}/reviews`);
+    addDocumentNonBlocking(reviewsCol, {
+      ...values,
+      userId: user.uid,
+      userName: user.displayName || 'Anonymous',
+      userAvatar: user.photoURL || '',
+      movieId: movieId,
+      createdAt: serverTimestamp(),
+      reviewDate: new Date().toISOString(),
+    });
+
     toast({
       title: 'Review Submitted!',
       description: "Thanks for sharing your thoughts.",
     });
     form.reset();
   }
+
+  if (!user) {
+    return (
+        <Card className="bg-secondary/50 border-dashed">
+            <CardHeader>
+                <CardTitle>Join the Conversation</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className='flex items-center justify-between'>
+                    <p className='text-muted-foreground'>You must be logged in to write a review.</p>
+                    <Button asChild>
+                        <Link href="/login">Log In</Link>
+                    </Button>
+                </div>
+            </CardContent>
+        </Card>
+    )
+  }
+
 
   return (
     <Card>

@@ -1,41 +1,12 @@
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Film, Languages, Star, Users, Video, Youtube } from 'lucide-react';
-import SentimentSummary from '@/components/movies/SentimentSummary';
-import ReviewForm from '@/components/movies/ReviewForm';
+import { Languages, Star, Youtube } from 'lucide-react';
 import { fetchTMDb, getImageUrl } from '@/lib/tmdb';
-import type { MovieDetails, Review } from '@/lib/types';
-import ReviewCard from '@/components/movies/ReviewCard';
+import type { MovieDetails } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { NetflixLogo } from '@/components/icons/NetflixLogo';
-
-// Mock reviews for now
-const getReviewsByMovieId = (movieId: string): Review[] => {
-    return [
-        {
-            id: '1',
-            movieId: movieId,
-            userId: '1',
-            userName: 'CinemaFan',
-            userAvatar: '/avatars/01.png',
-            rating: 4,
-            comment: "A masterpiece of modern cinema. The acting was superb and the story was captivating.",
-            createdAt: new Date(Date.now() - 86400000 * 2).toISOString(), // 2 days ago
-        },
-        {
-            id: '2',
-            movieId: movieId,
-            userId: '2',
-            userName: 'MovieMaven',
-            userAvatar: '/avatars/02.png',
-            rating: 5,
-            comment: "Absolutely stunning visuals and a soundtrack that will stick with you for days. Highly recommended!",
-            createdAt: new Date(Date.now() - 86400000 * 5).toISOString(), // 5 days ago
-        }
-    ]
-}
-
+import MovieReviews from '@/components/movies/MovieReviews';
 
 export default async function MovieDetailPage({ params }: { params: { id: string } }) {
   const movie = await fetchTMDb<MovieDetails>(`movie/${params.id}?append_to_response=videos`);
@@ -44,7 +15,6 @@ export default async function MovieDetailPage({ params }: { params: { id: string
     notFound();
   }
 
-  const reviews = getReviewsByMovieId(params.id);
   const posterUrl = movie.poster_path ? getImageUrl(movie.poster_path) : 'https://picsum.photos/seed/placeholder/500/750';
   const backdropUrl = movie.backdrop_path ? getImageUrl(movie.backdrop_path, 'w1280') : 'https://picsum.photos/seed/backdrop/1280/720';
   const releaseYear = movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A';
@@ -150,7 +120,7 @@ export default async function MovieDetailPage({ params }: { params: { id: string
                     </div>
                 </div>
                 <div className="flex items-start gap-3 p-4 rounded-lg bg-secondary/50">
-                    <Film className="w-5 h-5 mt-0.5 text-muted-foreground" />
+                    <Languages className="w-5 h-5 mt-0.5 text-muted-foreground" />
                     <div>
                         <h3 className="font-semibold">Subtitles</h3>
                         <p className="text-muted-foreground">{subtitleCount} languages</p>
@@ -160,26 +130,8 @@ export default async function MovieDetailPage({ params }: { params: { id: string
           </div>
         </div>
 
-        <div className="mt-16 space-y-12">
-          <section>
-            <h2 className="text-3xl font-bold font-headline mb-6">Reviews</h2>
-            {reviews.length > 0 ? (
-              <div className="space-y-8">
-                  <SentimentSummary reviews={reviews} />
-                  <div className="grid gap-6 md:grid-cols-2">
-                    {reviews.map((review) => (
-                        <ReviewCard key={review.id} review={review} />
-                    ))}
-                  </div>
-              </div>
-            ) : (
-              <p className="text-muted-foreground">No reviews yet. Be the first to write one!</p>
-            )}
-          </section>
-
-          <section>
-              <ReviewForm movieId={String(movie.id)} />
-          </section>
+        <div className="mt-16">
+          <MovieReviews movieId={String(movie.id)} />
         </div>
       </div>
     </div>
