@@ -1,9 +1,10 @@
+
 'use client';
 
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Languages, Star, Youtube } from 'lucide-react';
-import type { MovieDetails } from '@/lib/types';
+import type { MovieDetails, TVDetails } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { NetflixLogo } from '@/components/icons/NetflixLogo';
 import MovieReviews from '@/components/movies/MovieReviews';
@@ -15,24 +16,29 @@ import {
 import { useEffect, useState } from 'react';
 import { fetchTMDb, getImageUrl } from '@/lib/tmdb';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useSearchParams } from 'next/navigation';
+
+type DetailData = MovieDetails & TVDetails;
 
 export default function MovieDetailPage({ params }: { params: { id: string } }) {
-  const [movie, setMovie] = useState<MovieDetails | null>(null);
+  const searchParams = useSearchParams();
+  const type = searchParams.get('type') || 'movie';
+
+  const [details, setDetails] = useState<DetailData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function getMovie() {
+    async function getDetails() {
       setLoading(true);
-      const movieData = await fetchTMDb<MovieDetails>(
-        `movie/${params.id}?append_to_response=videos`
-      );
-      setMovie(movieData);
+      const endpoint = `${type}/${params.id}?append_to_response=videos`;
+      const data = await fetchTMDb<DetailData>(endpoint);
+      setDetails(data);
       setLoading(false);
     }
-    getMovie();
-  }, [params.id]);
+    getDetails();
+  }, [params.id, type]);
 
-  if (loading || !movie) {
+  if (loading || !details) {
     return (
       <div className="space-y-12">
         <Skeleton className="relative h-[60vh] w-full -mx-4 sm:-mx-6 lg:-mx-8 mt-[-1rem] sm:mt-[-1.5rem] lg:mt-[-2rem]" />
@@ -56,28 +62,32 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
     );
   }
 
-  const posterUrl = movie.poster_path
-    ? getImageUrl(movie.poster_path)
+  const title = details.title || details.name;
+  const releaseDate = details.release_date || details.first_air_date;
+  const runtime = details.runtime || (details.episode_run_time?.[0]);
+
+  const posterUrl = details.poster_path
+    ? getImageUrl(details.poster_path)
     : 'https://picsum.photos/seed/placeholder/500/750';
-  const backdropUrl = movie.backdrop_path
-    ? getImageUrl(movie.backdrop_path, 'w1280')
+  const backdropUrl = details.backdrop_path
+    ? getImageUrl(details.backdrop_path, 'w1280')
     : 'https://picsum.photos/seed/backdrop/1280/720';
-  const releaseYear = movie.release_date
-    ? new Date(movie.release_date).getFullYear()
+  const releaseYear = releaseDate
+    ? new Date(releaseDate).getFullYear()
     : 'N/A';
-  const trailer = movie.videos?.results.find(
+  const trailer = details.videos?.results.find(
     (v) => v.type === 'Trailer' && v.site === 'YouTube'
   );
 
-  const onNetflix = movie.id % 2 === 0;
-  const subtitleCount = movie.spoken_languages.length + 3;
+  const onNetflix = details.id % 2 === 0;
+  const subtitleCount = details.spoken_languages.length + 3;
 
   return (
     <div className="space-y-12">
       <div className="relative h-[60vh] w-full -mx-4 sm:-mx-6 lg:-mx-8 mt-[-1rem] sm:mt-[-1.5rem] lg:mt-[-2rem]">
         <Image
           src={backdropUrl}
-          alt={`Backdrop for ${movie.title}`}
+          alt={`Backdrop for ${title}`}
           fill
           className="object-cover object-top"
           priority
@@ -89,17 +99,17 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
             <div className="grid md:grid-cols-3 gap-8">
               <div className="md:col-span-2 text-white">
                 <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tight text-white shadow-lg">
-                  {movie.title}
+                  {title}
                 </h1>
                 <div className="flex items-center gap-4 mt-2">
                   <span>{releaseYear}</span>
                   <div className="flex items-center gap-1">
                     <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
                     <span className="font-semibold">
-                      {movie.vote_average.toFixed(1)}
+                      {details.vote_average.toFixed(1)}
                     </span>
                   </div>
-                  <span>{movie.runtime} min</span>
+                  {runtime && <span>{runtime} min</span>}
                 </div>
               </div>
             </div>
@@ -113,7 +123,7 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
             <div className="aspect-[2/3] relative rounded-lg overflow-hidden shadow-2xl">
               <Image
                 src={posterUrl}
-                alt={`Poster for ${movie.title}`}
+                alt={`Poster for ${title}`}
                 fill
                 sizes="(max-width: 768px) 100vw, 33vw"
                 className="object-cover"
@@ -137,14 +147,14 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
           <div className="md:col-span-2 space-y-8">
             <div className="space-y-4">
               <div className="flex flex-wrap items-center gap-2">
-                {movie.genres.map((genre) => (
+                {details.genres.map((genre) => (
                   <Badge key={genre.id} variant="secondary">
                     {genre.name}
                   </Badge>
                 ))}
               </div>
 
-              <p className="text-lg text-foreground/80">{movie.overview}</p>
+              <p className="text-lg text-foreground/80">{details.overview}</p>
             </div>
 
             <div className="space-y-4">
@@ -184,7 +194,7 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
                     <div>
                       <h3 className="font-semibold">Languages</h3>
                       <p className="text-muted-foreground">
-                        {movie.spoken_languages.map((lang) => lang.english_name).join(', ') || 'N/A'}
+                        {details.spoken_languages.map((lang) => lang.english_name).join(', ') || 'N/A'}
                       </p>
                     </div>
                   </div>
@@ -204,7 +214,7 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
         </div>
 
         <div className="mt-16">
-          <MovieReviews movieId={String(movie.id)} />
+          <MovieReviews movieId={String(details.id)} />
         </div>
       </div>
     </div>

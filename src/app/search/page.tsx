@@ -59,7 +59,7 @@ function SearchResults() {
 
       {!loading && movies.length === 0 && (
          <div className="text-center py-16">
-            <p className="text-lg text-muted-foreground">No movies found. Try a different search.</p>
+            <p className="text-lg text-muted-foreground">No results found. Try a different search.</p>
         </div>
       )}
 

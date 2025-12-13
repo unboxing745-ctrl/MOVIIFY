@@ -26,27 +26,46 @@ export function useSearchMovies(query: string, genre: string) {
     setState(prevState => ({ ...prevState, loading: true, error: null }));
 
     try {
-      const path = query ? 'search/movie' : 'discover/movie';
-      const params: Record<string, string> = { page: String(page) };
-      if (query) {
-        params.query = query;
-      }
-      if (genre && genre !== 'all') {
-        params.with_genres = genre;
-      }
+      let results: MovieResult[] = [];
+      let total_pages = 0;
 
-      const data = await fetchTMDb<{ results: MovieResult[]; total_pages: number }>(path, params);
+      if (query) {
+        // Fetch both movies and TV shows
+        const [movieData, tvData] = await Promise.all([
+            fetchTMDb<{ results: MovieResult[]; total_pages: number }>('search/movie', { query, page: String(page) }),
+            fetchTMDb<{ results: MovieResult[]; total_pages: number }>('search/tv', { query, page: String(page) })
+        ]);
+        
+        const combinedResults = [
+            ...movieData.results.map(r => ({...r, media_type: 'movie'})), 
+            ...tvData.results.map(r => ({...r, media_type: 'tv'}))
+        ];
+
+        // Sort by popularity
+        combinedResults.sort((a, b) => b.popularity - a.popularity);
+        results = combinedResults;
+        total_pages = Math.max(movieData.total_pages, tvData.total_pages);
+      } else {
+        // Discover movies by genre
+        const params: Record<string, string> = { page: String(page) };
+         if (genre && genre !== 'all') {
+            params.with_genres = genre;
+        }
+        const data = await fetchTMDb<{ results: MovieResult[]; total_pages: number }>('discover/movie', params);
+        results = data.results.map(r => ({...r, media_type: 'movie'}));
+        total_pages = data.total_pages;
+      }
       
-      const newMovies = data.results.filter(
+      const newMovies = results.filter(
         (newMovie) => !currentMovies.some((existingMovie) => existingMovie.id === newMovie.id)
       );
 
       setState(prevState => ({
         ...prevState,
-        movies: page === 1 ? data.results : [...prevState.movies, ...newMovies],
+        movies: page === 1 ? results : [...prevState.movies, ...newMovies],
         loading: false,
         page,
-        hasMore: page < data.total_pages,
+        hasMore: page < total_pages,
       }));
     } catch (err) {
       setState(prevState => ({
