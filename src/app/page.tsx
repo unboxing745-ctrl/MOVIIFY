@@ -19,7 +19,7 @@ export default function Home() {
                  </h1>
               </div>
               <p className="text-xl md:text-2xl text-foreground/80">
-                Your Universe of Movies, Unlocked.
+                Discover your next favorite film.
               </p>
               <div className="max-w-xl mx-auto">
                  <SearchBar />
