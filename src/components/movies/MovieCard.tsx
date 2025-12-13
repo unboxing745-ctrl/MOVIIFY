@@ -2,34 +2,60 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { MovieResult } from '@/lib/types';
 import { getImageUrl } from '@/lib/tmdb';
+import { Badge } from '../ui/badge';
+import { LanguagesIcon, Youtube } from 'lucide-react';
+import { NetflixLogo } from '../icons/NetflixLogo';
 
 interface MovieCardProps {
   movie: MovieResult;
 }
 
 export default function MovieCard({ movie }: MovieCardProps) {
-  const posterUrl = movie.poster_path ? getImageUrl(movie.poster_path) : 'https://picsum.photos/seed/placeholder/500/750';
-  const releaseYear = movie.release_date ? new Date(movie.release_date).getFullYear() : null;
+  const posterUrl = movie.poster_path
+    ? getImageUrl(movie.poster_path, 'w500')
+    : `https://picsum.photos/seed/${movie.id}/500/750`;
+  const releaseYear = movie.release_date
+    ? new Date(movie.release_date).getFullYear()
+    : 'N/A';
   
+  // Mock data based on image
+  const isFree = movie.id % 3 === 0;
+  const onNetflix = movie.id % 2 === 0;
+  const languageCount = movie.genre_ids.length + 5;
+
+
   return (
-    <Link href={`/movies/${movie.id}`} className="group block relative aspect-[2/3]">
-      <div className="relative w-full h-full rounded-lg overflow-hidden transition-transform duration-300 ease-in-out transform group-hover:scale-110 group-hover:shadow-2xl group-hover:shadow-primary/30">
-          <Image
-            src={posterUrl}
-            alt={`Poster for ${movie.title}`}
-            fill
-            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-            className="object-cover"
-            data-ai-hint="movie poster"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <div className="absolute bottom-0 left-0 right-0 p-3 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <h3 className="font-bold text-base leading-tight truncate">
-              {movie.title}
+    <Link href={`/movies/${movie.id}`} className="group block space-y-3">
+        <div className="aspect-video w-full rounded-lg overflow-hidden">
+            <Image
+                src={getImageUrl(movie.backdrop_path, 'w500')}
+                alt={`Poster for ${movie.title}`}
+                width={500}
+                height={281}
+                className="object-cover w-full h-full transform transition-transform duration-300 group-hover:scale-110"
+                data-ai-hint="movie poster image"
+            />
+        </div>
+        <div className='space-y-2'>
+            <h3 className="font-bold text-lg leading-tight truncate group-hover:text-primary">
+                {movie.title}
             </h3>
-            {releaseYear && <p className="text-sm text-neutral-300">{releaseYear}</p>}
-          </div>
-      </div>
+            <div className="flex items-center justify-between text-muted-foreground text-sm">
+                <div className='flex items-center gap-3'>
+                    <span>{releaseYear}</span>
+                    <div className='flex items-center gap-1'>
+                        <LanguagesIcon className='w-4 h-4 text-sky-400' />
+                        <span>{languageCount} Languages</span>
+                    </div>
+                </div>
+                <div className='flex items-center gap-2'>
+                    {onNetflix ? <NetflixLogo className="w-4 h-4" /> : <Youtube className="w-4 h-4 text-red-600" />}
+                    <Badge variant={isFree ? 'default' : 'secondary'} className={isFree ? 'bg-green-600/20 text-green-400 border-green-500/30' : ''}>
+                        {isFree ? 'Free' : 'Paid'}
+                    </Badge>
+                </div>
+            </div>
+        </div>
     </Link>
   );
 }

@@ -37,7 +37,8 @@ function SearchBar() {
         current.delete('q');
       }
 
-      router.push(`/search?${current.toString()}`);
+      const searchPath = current.toString() ? `?${current.toString()}` : '/search';
+      router.push(`/search${searchPath.startsWith('?') ? '' : '?'}${current.toString()}`);
     };
   
     return (
@@ -50,10 +51,6 @@ function SearchBar() {
           defaultValue={defaultQuery}
           aria-label="Search movies"
         />
-        <Button type="submit" size="lg" aria-label="Search" className="h-12">
-          <Search className="mr-2 h-5 w-5" />
-          Search
-        </Button>
       </form>
     );
   }
@@ -62,7 +59,6 @@ function Filters() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [genres, setGenres] = useState<Genre[]>([]);
-    const years = Array.from({ length: 50 }, (_, i) => new Date().getFullYear() - i);
   
     useEffect(() => {
       fetchTMDb<{ genres: Genre[] }>('genre/movie/list').then((data) => {
@@ -70,9 +66,9 @@ function Filters() {
       });
     }, []);
 
-    const handleFilterChange = (type: 'genre' | 'year', value: string) => {
+    const handleFilterChange = (type: 'genre', value: string) => {
         const current = new URLSearchParams(Array.from(searchParams.entries()));
-        const key = type === 'genre' ? 'with_genres' : 'primary_release_year';
+        const key = type === 'genre' ? 'with_genres' : '';
 
         if (value && value !== 'all') {
             current.set(key, value);
@@ -89,7 +85,7 @@ function Filters() {
     return (
       <div className="flex gap-2">
         <Select onValueChange={(value) => handleFilterChange('genre', value)} defaultValue={searchParams.get('with_genres') || 'all'}>
-          <SelectTrigger className="w-[180px] h-12 text-base">
+          <SelectTrigger className="w-[220px] h-12 text-base">
             <SelectValue placeholder="Genre" />
           </SelectTrigger>
           <SelectContent>
@@ -99,17 +95,10 @@ function Filters() {
             ))}
           </SelectContent>
         </Select>
-        <Select onValueChange={(value) => handleFilterChange('year', value)} defaultValue={searchParams.get('primary_release_year') || 'all'}>
-          <SelectTrigger className="w-[180px] h-12 text-base">
-            <SelectValue placeholder="Year" />
-          </SelectTrigger>
-          <SelectContent>
-             <SelectItem value="all">All Years</SelectItem>
-            {years.map((year) => (
-              <SelectItem key={year} value={String(year)}>{year}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Button type="submit" size="lg" className="h-12" form='search-form'>
+          <Search className="mr-2 h-5 w-5" />
+          Search
+        </Button>
       </div>
     );
   }

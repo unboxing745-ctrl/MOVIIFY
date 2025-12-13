@@ -7,17 +7,16 @@ import { useEffect, useState } from 'react';
 import { fetchTMDb } from '@/lib/tmdb';
 import type { MovieResult } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Film } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 function SearchResults() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q');
   const genre = searchParams.get('with_genres');
-  const year = searchParams.get('primary_release_year');
   const [results, setResults] = useState<MovieResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  const [totalPages, setTotalPages] = useState(1);
 
   const performSearch = (pageNum: number) => {
     setLoading(true);
@@ -31,18 +30,15 @@ function SearchResults() {
         path = 'search/movie';
         params.query = query;
     }
-    if (genre) {
+    if (genre && genre !== 'all') {
         params.with_genres = genre;
-    }
-    if (year) {
-        params.primary_release_year = year;
     }
 
     fetchTMDb<{ results: MovieResult[], total_pages: number }>
     (path, params)
       .then((data) => {
-        setResults(prev => pageNum === 1 ? data.results : [...prev, ...data.results]);
-        setHasMore(pageNum < data.total_pages);
+        setResults(data.results);
+        setTotalPages(data.total_pages);
       })
       .finally(() => {
         setLoading(false);
@@ -50,25 +46,20 @@ function SearchResults() {
   };
 
   useEffect(() => {
-    setPage(1);
-    setResults([]);
-    performSearch(1);
+    performSearch(page);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, genre, year]);
-
-  useEffect(() => {
-    if (page > 1) {
-        performSearch(page);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+  }, [query, genre, page]);
 
 
   if (loading && results.length === 0) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-        {Array.from({ length: 18 }).map((_, i) => (
-          <Skeleton key={i} className="aspect-[2/3] w-full" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-6 gap-y-12">
+        {Array.from({ length: 10 }).map((_, i) => (
+            <div key={i} className="space-y-2">
+                <Skeleton className="aspect-video w-full rounded-lg" />
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+            </div>
         ))}
       </div>
     );
@@ -85,18 +76,45 @@ function SearchResults() {
     );
   }
 
+  const renderPagination = () => {
+    const pages = [];
+    const maxPagesToShow = 5;
+    let startPage = Math.max(1, page - Math.floor(maxPagesToShow / 2));
+    let endPage = startPage + maxPagesToShow - 1;
+
+    if (endPage > totalPages) {
+        endPage = totalPages;
+        startPage = Math.max(1, endPage - maxPagesToShow + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        pages.push(
+            <Button 
+                key={i} 
+                variant={i === page ? 'default' : 'outline'} 
+                onClick={() => setPage(i)}
+                className="h-9 w-9 p-0"
+            >
+                {i}
+            </Button>
+        );
+    }
+    return pages;
+  }
+
 
   return (
-    <div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+    <div className='space-y-8'>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-6 gap-y-12">
         {results.map((movie) => (
             <MovieCard key={movie.id} movie={movie} />
         ))}
         </div>
-        {loading && <div className="text-center py-8">Loading more...</div>}
-        {!loading && hasMore && (
-            <div className="text-center py-8">
-                <button onClick={() => setPage(p => p + 1)} className="text-primary hover:underline">Load More</button>
+        {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2">
+                <Button variant="outline" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>Previous</Button>
+                {renderPagination()}
+                <Button variant="outline" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>Next</Button>
             </div>
         )}
     </div>
@@ -109,7 +127,7 @@ export default function SearchPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-4xl font-bold font-headline mb-4">
-          Discover Movies
+          Search Movies
         </h1>
         <Suspense fallback={<Skeleton className="h-12 w-full" />}>
           <SearchAndFilter />
