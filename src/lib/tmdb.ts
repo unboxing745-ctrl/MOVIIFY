@@ -1,12 +1,15 @@
 import { MovieResult } from './types';
 
-const BASE_URL = 'http://localhost:9002/api/tmdb'; // Use the Next.js API route
+// Use a relative path for client-side requests, and an absolute path for server-side.
+const BASE_URL = typeof window === 'undefined' 
+  ? 'http://localhost:9002/api/tmdb' 
+  : '/api/tmdb';
 
 export async function fetchTMDb<T>(
   path: string,
   params: Record<string, string> = {}
 ): Promise<T> {
-  const url = new URL(BASE_URL);
+  const url = new URL(BASE_URL, typeof window === 'undefined' ? undefined : window.location.origin);
   url.searchParams.append('path', path);
   for (const [key, value] of Object.entries(params)) {
     url.searchParams.append(key, value);
@@ -28,7 +31,7 @@ export async function fetchTMDb<T>(
     console.error('Error fetching data from TMDB proxy:', error);
     // In case of a network or other fetch error, we return a default/empty structure
     // to prevent the app from crashing. Adjust this as needed.
-    if (path.includes('search')) {
+    if (path.includes('search') || path.includes('discover')) {
         return { results: [], page: 1, total_pages: 1, total_results: 0 } as T;
     }
     return { results: [] } as T;
