@@ -4,7 +4,7 @@
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Star, Youtube, Clapperboard, CalendarIcon, User, Video, Captions } from 'lucide-react';
-import type { MovieDetails, TVDetails, Credits, WatchProviders } from '@/lib/types';
+import type { MovieDetails, TVDetails, Credits, WatchProviders, WatchProviderDetails } from '@/lib/types';
 import MovieReviews from '@/components/movies/MovieReviews';
 import { useEffect, useState } from 'react';
 import { fetchTMDb, getImageUrl } from '@/lib/tmdb';
@@ -14,6 +14,7 @@ import { NetflixLogo } from '@/components/icons/NetflixLogo';
 
 type DetailData = (MovieDetails | TVDetails) & { credits: Credits; 'watch/providers': { results: WatchProviders } };
 
+type UnifiedProvider = WatchProviderDetails & { type: 'Stream' | 'Rent' | 'Buy' | 'Free' };
 
 export default function MovieDetailPage() {
   const params = useParams();
@@ -93,7 +94,16 @@ export default function MovieDetailPage() {
   ].filter((v, i, a) => a.indexOf(v) === i); // Remove duplicates
 
   const watchProviders = details['watch/providers']?.results?.US;
-  const hasProviders = watchProviders && (watchProviders.flatrate || watchProviders.rent || watchProviders.buy || watchProviders.free);
+  
+  const unifiedProviders: UnifiedProvider[] = [];
+  if (watchProviders) {
+    watchProviders.flatrate?.forEach(p => unifiedProviders.push({ ...p, type: 'Stream' }));
+    watchProviders.rent?.forEach(p => unifiedProviders.push({ ...p, type: 'Rent' }));
+    watchProviders.buy?.forEach(p => unifiedProviders.push({ ...p, type: 'Buy' }));
+    watchProviders.free?.forEach(p => unifiedProviders.push({ ...p, type: 'Free' }));
+  }
+  const uniqueProviders = Array.from(new Map(unifiedProviders.map(p => [`${p.provider_id}-${p.type}`, p])).values());
+  uniqueProviders.sort((a,b) => (a.display_priority || Infinity) - (b.display_priority || Infinity));
 
 
   return (
@@ -173,61 +183,16 @@ export default function MovieDetailPage() {
                 <Video className="text-primary" />
                 Where to Watch
             </h2>
-            {hasProviders ? (
-                <div className="grid gap-6">
-                    {watchProviders.flatrate && watchProviders.flatrate.length > 0 && (
-                        <div>
-                            <h3 className="text-lg font-semibold mb-3">Stream</h3>
-                            <div className="flex flex-wrap items-start gap-6">
-                                {watchProviders.flatrate.map(p => (
-                                    <div key={p.provider_id} className="flex flex-col items-center gap-2 text-center w-20">
-                                        {p.provider_name === 'Netflix' ? <NetflixLogo className="h-10 w-auto" />
-                                        : <Image src={getImageUrl(p.logo_path, 'w92')} alt={p.provider_name} width={50} height={50} className="rounded-lg" />}
-                                        <span className="text-xs text-muted-foreground">{p.provider_name}</span>
-                                    </div>
-                                ))}
-                            </div>
+            {uniqueProviders.length > 0 ? (
+                <div className="grid gap-4 md:grid-cols-2">
+                    {uniqueProviders.map(p => (
+                        <div key={`${p.provider_id}-${p.type}`} className="flex items-center gap-4 bg-secondary p-3 rounded-lg">
+                            {p.provider_name === 'Netflix' ? <NetflixLogo className="h-10 w-10 shrink-0" />
+                            : <Image src={getImageUrl(p.logo_path, 'w92')} alt={p.provider_name} width={40} height={40} className="rounded-md shrink-0" />}
+                            <span className="flex-grow font-semibold">{p.provider_name}</span>
+                             <Badge variant={p.type === 'Stream' ? 'default' : 'secondary'} className="shrink-0">{p.type}</Badge>
                         </div>
-                    )}
-                    {watchProviders.rent && watchProviders.rent.length > 0 && (
-                        <div>
-                            <h3 className="text-lg font-semibold mb-3">Rent</h3>
-                            <div className="flex flex-wrap items-start gap-6">
-                                {watchProviders.rent.map(p => (
-                                    <div key={p.provider_id} className="flex flex-col items-center gap-2 text-center w-20">
-                                        <Image src={getImageUrl(p.logo_path, 'w92')} alt={p.provider_name} width={50} height={50} className="rounded-lg" />
-                                        <span className="text-xs text-muted-foreground">{p.provider_name}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                     {watchProviders.buy && watchProviders.buy.length > 0 && (
-                        <div>
-                            <h3 className="text-lg font-semibold mb-3">Buy</h3>
-                            <div className="flex flex-wrap items-start gap-6">
-                                {watchProviders.buy.map(p => (
-                                    <div key={p.provider_id} className="flex flex-col items-center gap-2 text-center w-20">
-                                        <Image src={getImageUrl(p.logo_path, 'w92')} alt={p.provider_name} width={50} height={50} className="rounded-lg" />
-                                        <span className="text-xs text-muted-foreground">{p.provider_name}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                    {watchProviders.free && watchProviders.free.length > 0 && (
-                        <div>
-                            <h3 className="text-lg font-semibold mb-3">Free</h3>
-                            <div className="flex flex-wrap items-start gap-6">
-                                {watchProviders.free.map(p => (
-                                    <div key={p.provider_id} className="flex flex-col items-center gap-2 text-center w-20">
-                                        <Image src={getImageUrl(p.logo_path, 'w92')} alt={p.provider_name} width={50} height={50} className="rounded-lg" />
-                                        <span className="text-xs text-muted-foreground">{p.provider_name}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                    ))}
                 </div>
             ) : (
                 <p className="text-muted-foreground">Streaming information is not available for this title.</p>
@@ -260,3 +225,4 @@ export default function MovieDetailPage() {
     </div>
   );
 }
+
