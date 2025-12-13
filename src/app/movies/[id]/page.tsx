@@ -4,14 +4,15 @@
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Languages, Star, Youtube, Clapperboard, CalendarIcon, User, Video, Captions } from 'lucide-react';
-import type { MovieDetails, TVDetails, Credits } from '@/lib/types';
+import type { MovieDetails, TVDetails, Credits, WatchProviders } from '@/lib/types';
 import MovieReviews from '@/components/movies/MovieReviews';
 import { useEffect, useState } from 'react';
 import { fetchTMDb, getImageUrl } from '@/lib/tmdb';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSearchParams, useParams } from 'next/navigation';
+import { NetflixLogo } from '@/components/icons/NetflixLogo';
 
-type DetailData = (MovieDetails | TVDetails) & { credits: Credits };
+type DetailData = (MovieDetails | TVDetails) & { credits: Credits; 'watch/providers': { results: WatchProviders } };
 
 
 export default function MovieDetailPage() {
@@ -27,7 +28,7 @@ export default function MovieDetailPage() {
     async function getDetails() {
       if (!id) return;
       setLoading(true);
-      const endpoint = `${type}/${id}?append_to_response=videos,credits`;
+      const endpoint = `${type}/${id}?append_to_response=videos,credits,watch/providers`;
       try {
         const data = await fetchTMDb<DetailData>(endpoint);
         setDetails(data);
@@ -91,6 +92,8 @@ export default function MovieDetailPage() {
       'French'
   ].filter((v, i, a) => a.indexOf(v) === i); // Remove duplicates
 
+  const watchProviders = details['watch/providers']?.results?.US;
+
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-12">
@@ -120,6 +123,7 @@ export default function MovieDetailPage() {
                             <Star className="w-5 h-5 text-amber-400" />
                             <span>{details.vote_average.toFixed(1)}</span>
                         </div>
+
                         <div className="flex items-center flex-wrap gap-2">
                             <Clapperboard className="w-5 h-5" />
                             {details.genres.map((genre) => (
@@ -154,12 +158,33 @@ export default function MovieDetailPage() {
                     )}
                 </div>
 
-                <div className="space-y-2">
-                      <h2 className="text-xl font-bold flex items-center gap-2">
-                          <Captions className="text-primary" />
-                          Subtitles
-                      </h2>
-                      <p className="text-muted-foreground">{availableSubtitles.join(', ')}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                    <div className="space-y-2">
+                        <h2 className="text-xl font-bold flex items-center gap-2">
+                            <Captions className="text-primary" />
+                            Subtitles
+                        </h2>
+                        <p className="text-muted-foreground">{availableSubtitles.join(', ')}</p>
+                    </div>
+
+                    {watchProviders && (watchProviders.flatrate || watchProviders.free) && (
+                        <div className="space-y-2">
+                            <h2 className="text-xl font-bold flex items-center gap-2">
+                                <Video className="text-primary" />
+                                Where to Watch
+                            </h2>
+                            <div className="flex flex-wrap items-center gap-4">
+                                {watchProviders.flatrate?.map(p => (
+                                    p.provider_name === 'Netflix' ? <NetflixLogo key={p.provider_id} className="h-6 w-auto" />
+                                    : <Image key={p.provider_id} src={getImageUrl(p.logo_path, 'w92')} alt={p.provider_name} width={40} height={40} className="rounded-md" />
+                                ))}
+                                {watchProviders.free?.map(p => (
+                                     p.provider_name === 'Netflix' ? <NetflixLogo key={p.provider_id} className="h-6 w-auto" />
+                                    : <Image key={p.provider_id} src={getImageUrl(p.logo_path, 'w92')} alt={p.provider_name} width={40} height={40} className="rounded-md" />
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
