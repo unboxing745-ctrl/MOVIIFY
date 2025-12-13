@@ -6,6 +6,7 @@ import SentimentSummary from '@/components/movies/SentimentSummary';
 import ReviewForm from '@/components/movies/ReviewForm';
 import { fetchTMDb, getImageUrl } from '@/lib/tmdb';
 import type { MovieDetails, Review } from '@/lib/types';
+import ReviewCard from '@/components/movies/ReviewCard';
 
 // Mock reviews for now
 const getReviewsByMovieId = (movieId: string): Review[] => {
