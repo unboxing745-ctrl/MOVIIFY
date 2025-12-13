@@ -4,13 +4,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Home,
   Clapperboard,
-  LogIn,
   LogOut,
-  UserPlus,
   UserCircle,
-  Loader,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -18,8 +14,6 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
   SidebarSeparator,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
@@ -41,13 +35,7 @@ export function AppSidebar() {
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
 
-  const menuItems = [
-    {
-      href: '/',
-      label: 'Home',
-      icon: Home,
-    },
-  ];
+  const menuItems: any[] = [];
 
   const handleLogout = () => {
     if (auth) {
@@ -117,22 +105,7 @@ export function AppSidebar() {
       );
     }
 
-    return (
-      <div className="flex flex-col gap-2">
-        <Button asChild>
-          <Link href="/login">
-            <LogIn className="mr-2" />
-            Log In
-          </Link>
-        </Button>
-        <Button asChild variant="secondary">
-          <Link href="/signup">
-            <UserPlus className="mr-2" />
-            Sign Up
-          </Link>
-        </Button>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -150,20 +123,6 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
-          {menuItems.map((item) => (
-            <SidebarMenuItem key={item.href}>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname === item.href}
-                tooltip={item.label}
-              >
-                <Link href={item.href}>
-                  <item.icon />
-                  <span>{item.label}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-4">
