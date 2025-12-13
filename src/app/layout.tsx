@@ -3,9 +3,10 @@ import { AppSidebar } from '@/components/layout/AppSidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
+import { Suspense } from 'react';
 
 export const metadata: Metadata = {
-  title: 'ReelFinder',
+  title: 'Moviify',
   description:
     'Search for movies, read or write reviews, and get smart recommendations.',
 };
@@ -16,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -38,7 +39,9 @@ export default function RootLayout({
           <AppSidebar />
           <SidebarInset>
             <div className="min-h-screen flex flex-col">
-              <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+              <main className="flex-1">
+                <Suspense>{children}</Suspense>
+              </main>
             </div>
           </SidebarInset>
         </SidebarProvider>

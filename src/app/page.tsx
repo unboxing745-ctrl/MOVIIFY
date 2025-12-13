@@ -1,60 +1,74 @@
-import Link from 'next/link';
+import { Suspense } from 'react';
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Search } from 'lucide-react';
-import { getTrendingMovies } from '@/lib/data';
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
+import { fetchTMDb } from '@/lib/tmdb';
+import type { MovieResult } from '@/lib/types';
 import MovieCard from '@/components/movies/MovieCard';
-import { Recommendations } from '@/components/movies/Recommendations';
+import HeroBanner from '@/components/movies/HeroBanner';
 
-export default function Home() {
-  const trendingMovies = getTrendingMovies();
+async function MovieCarousel({
+  title,
+  path,
+}: {
+  title: string;
+  path: string;
+}) {
+  const { results: movies } = await fetchTMDb<{ results: MovieResult[] }>(path);
 
   return (
-    <div className="space-y-12">
-      <section className="text-center bg-card p-8 rounded-xl shadow-md">
-        <h1 className="text-4xl md:text-5xl font-bold font-headline tracking-tight text-primary">
-          Find Your Next Favorite Movie
-        </h1>
-        <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-          Search, review, and get personalized recommendations for thousands of
-          titles.
-        </p>
-        <form
-          action="/search"
-          className="mt-8 max-w-xl mx-auto flex gap-2"
-        >
-          <Input
-            type="search"
-            name="q"
-            placeholder="Search for a movie, actor, genre..."
-            className="flex-1 text-base"
-            aria-label="Search movies"
-          />
-          <Button type="submit" size="lg" aria-label="Search">
-            <Search className="mr-2 h-5 w-5" />
-            Search
-          </Button>
-        </form>
-      </section>
-
-      <section>
-        <h2 className="text-3xl font-bold font-headline mb-6">
-          Trending Movies
-        </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-          {trendingMovies.map((movie) => (
-            <MovieCard key={movie.id} movie={movie} />
+    <section>
+      <h2 className="text-2xl font-bold font-headline mb-4 px-4 sm:px-6 lg:px-8">
+        {title}
+      </h2>
+      <Carousel
+        opts={{
+          align: 'start',
+          loop: true,
+        }}
+        className="w-full"
+      >
+        <CarouselContent className="-ml-4">
+          {movies.map((movie) => (
+            <CarouselItem
+              key={movie.id}
+              className="pl-4 basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6"
+            >
+              <MovieCard movie={movie} />
+            </CarouselItem>
           ))}
-        </div>
-      </section>
+        </CarouselContent>
+        <CarouselPrevious className="ml-12" />
+        <CarouselNext className="mr-12" />
+      </Carousel>
+    </section>
+  );
+}
 
-      <Recommendations />
+export default function Home() {
+  return (
+    <div className="space-y-12">
+      <Suspense fallback={<div className="h-[60vh] bg-secondary animate-pulse" />}>
+        <HeroBanner path="movie/popular" />
+      </Suspense>
+
+      <div className="space-y-16">
+        <Suspense fallback={<p>Loading trending movies...</p>}>
+          <MovieCarousel title="Trending Now" path="trending/movie/week" />
+        </Suspense>
+        
+        <Suspense fallback={<p>Loading popular movies...</p>}>
+          <MovieCarousel title="Popular Movies" path="movie/popular" />
+        </Suspense>
+        
+        <Suspense fallback={<p>Loading latest releases...</p>}>
+          <MovieCarousel title="Latest Releases" path="movie/now_playing" />
+        </Suspense>
+      </div>
     </div>
   );
 }

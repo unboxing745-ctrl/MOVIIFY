@@ -85,7 +85,7 @@ export function AppSidebar() {
         <Link href="/" className="flex items-center gap-2">
           <Clapperboard className="w-8 h-8 text-primary" />
           <h1 className="text-2xl font-bold font-headline text-primary">
-            ReelFinder
+            Moviify
           </h1>
         </Link>
       </SidebarHeader>
