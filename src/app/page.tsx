@@ -1,6 +1,6 @@
 
 import { Suspense } from 'react';
-import { Clapperboard, Film, Sparkles, TrendingUp } from 'lucide-react';
+import { Film, Sparkles, TrendingUp } from 'lucide-react';
 import MovieGrid from '@/components/movies/MovieGrid';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,7 +14,7 @@ export default function Home() {
            <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background" />
            <div className="relative z-10 space-y-6">
               <div className="flex items-center justify-center gap-4">
-                 <Clapperboard className="w-16 h-16 text-primary" />
+                 <Film className="w-16 h-16 text-primary" />
                  <h1 className="text-6xl md:text-8xl font-bold font-headline tracking-tighter text-primary">
                     MOVIIFY
                  </h1>

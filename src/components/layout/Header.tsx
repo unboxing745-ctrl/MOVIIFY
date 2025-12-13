@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Clapperboard, Search } from 'lucide-react';
+import { Film, Search } from 'lucide-react';
 import UserAuth from './UserAuth';
 import { Button } from '../ui/button';
 import {
@@ -41,7 +41,7 @@ export default function Header() {
       <div className="container flex h-20 items-center">
         <div className="mr-4 flex items-center">
           <Link href="/" className="flex items-center gap-2 mr-6">
-            <Clapperboard className="w-6 h-6 text-primary" />
+            <Film className="w-6 h-6 text-primary" />
             <span className="font-bold text-lg">MOVIIFY</span>
           </Link>
           <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
