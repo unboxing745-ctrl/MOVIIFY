@@ -3,7 +3,7 @@
 
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Star, Youtube, Clapperboard, CalendarIcon, User, Video, Captions } from 'lucide-react';
+import { Star, Youtube, Clapperboard, CalendarIcon, User, Video, Captions, Languages } from 'lucide-react';
 import type { MovieDetails, TVDetails, Credits, WatchProviders, WatchProviderDetails } from '@/lib/types';
 import MovieReviews from '@/components/movies/MovieReviews';
 import { useEffect, useState } from 'react';
@@ -86,6 +86,8 @@ export default function MovieDetailPage() {
   const trailer = details.videos?.results.find(
     (v) => v.type === 'Trailer' && v.site === 'YouTube'
   );
+
+  const availableLanguages = details.spoken_languages.map(l => l.english_name).join(', ');
 
   const availableSubtitles = [
       ...details.spoken_languages.slice(0, 2).map(l => l.english_name),
@@ -170,6 +172,13 @@ export default function MovieDetailPage() {
                     )}
                      <div className="space-y-2">
                         <h2 className="text-xl font-bold flex items-center gap-2">
+                            <Languages className="text-primary" />
+                            Languages
+                        </h2>
+                        <p className="text-muted-foreground">{availableLanguages || 'Not specified'}</p>
+                    </div>
+                     <div className="space-y-2">
+                        <h2 className="text-xl font-bold flex items-center gap-2">
                             <Captions className="text-primary" />
                             Subtitles
                         </h2>
@@ -233,3 +242,4 @@ export default function MovieDetailPage() {
   );
 }
 
+    
