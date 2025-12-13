@@ -1,4 +1,5 @@
 
+
 // Local types (if you were to have them)
 export interface Movie {
   id: string;
@@ -98,6 +99,7 @@ export interface MovieDetails {
   vote_average: number;
   vote_count: number;
   videos: { results: VideoResult[] };
+  credits: Credits;
   'watch/providers': { results: WatchProviders };
 }
 
@@ -135,7 +137,27 @@ export interface TVDetails {
     vote_average: number;
     vote_count: number;
     videos: { results: VideoResult[] };
+    credits: Credits;
     'watch/providers': { results: WatchProviders };
+}
+
+export interface Credits {
+    cast: CastMember[];
+    crew: CrewMember[];
+}
+
+export interface CastMember {
+    id: number;
+    name: string;
+    character: string;
+    profile_path: string | null;
+}
+
+export interface CrewMember {
+    id: number;
+    name: string;
+    job: string;
+    department: string;
 }
 
 

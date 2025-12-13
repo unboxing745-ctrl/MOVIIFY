@@ -27,29 +27,16 @@ export default function Home() {
            </div>
         </section>
 
-        <section className="py-8 md:py-16 px-4 md:px-8 lg:px-16">
-          <div className="space-y-8">
-            <div className="flex items-center gap-3">
-              <Film className="w-8 h-8 text-primary" />
-              <h2 className="text-3xl font-bold font-headline">
-                Movie Treasures
-              </h2>
-            </div>
-            <Suspense fallback={<div className="h-64 w-full bg-secondary animate-pulse rounded-lg" />}>
-              <MovieGrid path="movie/popular" horizontal />
-            </Suspense>
-          </div>
-        </section>
          <section className="py-8 md:py-16 px-4 md:px-8 lg:px-16">
           <div className="space-y-8">
             <div className="flex items-center gap-3">
               <Sparkles className="w-8 h-8 text-primary" />
               <h2 className="text-3xl font-bold font-headline">
-                New Releases
+                Popular
               </h2>
             </div>
             <Suspense fallback={<div className="h-96 w-full bg-secondary animate-pulse rounded-lg" />}>
-              <MovieGrid path="movie/now_playing" />
+              <MovieGrid path="movie/popular" />
             </Suspense>
           </div>
         </section>
