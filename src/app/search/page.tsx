@@ -43,7 +43,7 @@ function SearchResults() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 container pt-28">
       <div className="space-y-4">
         <h1 className="text-3xl font-bold font-headline">{getTitle()}</h1>
       </div>
@@ -87,8 +87,10 @@ function SearchResults() {
 
 export default function SearchPage() {
     return (
-        <Suspense fallback={<div className="text-center p-8">Loading search results...</div>}>
-            <SearchResults />
-        </Suspense>
+        <div className="container mx-auto px-4 py-8">
+            <Suspense fallback={<div className="text-center p-8">Loading search results...</div>}>
+                <SearchResults />
+            </Suspense>
+        </div>
     )
 }

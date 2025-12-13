@@ -43,7 +43,7 @@ export default function MovieDetailPage() {
 
   if (loading || !details) {
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 pt-28">
             <div className="grid md:grid-cols-[300px_1fr] gap-8">
                 <Skeleton className="aspect-[2/3] w-full rounded-lg" />
                 <div className="space-y-6">
@@ -96,7 +96,7 @@ export default function MovieDetailPage() {
 
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-12">
+    <div className="container mx-auto px-4 py-8 space-y-12 pt-28">
         <div className="grid md:grid-cols-[300px_1fr] gap-8 md:gap-12">
             <div className="w-full">
                 <div className="aspect-[2/3] w-full relative">
