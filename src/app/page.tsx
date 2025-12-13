@@ -10,6 +10,7 @@ import { fetchTMDb } from '@/lib/tmdb';
 import type { MovieResult } from '@/lib/types';
 import MovieCard from '@/components/movies/MovieCard';
 import HeroBanner from '@/components/movies/HeroBanner';
+import { Recommendations } from '@/components/movies/Recommendations';
 
 async function MovieCarousel({
   title,
@@ -57,6 +58,12 @@ export default function Home() {
       </Suspense>
 
       <div className="space-y-16">
+        <Suspense fallback={<p>Loading recommendations...</p>}>
+            <div className="px-4 sm:px-6 lg:px-8">
+              <Recommendations />
+            </div>
+        </Suspense>
+
         <Suspense fallback={<p>Loading trending movies...</p>}>
           <MovieCarousel title="Trending Now" path="trending/movie/week" />
         </Suspense>
