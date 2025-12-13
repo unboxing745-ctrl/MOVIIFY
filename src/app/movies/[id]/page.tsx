@@ -1,3 +1,4 @@
+
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
@@ -116,7 +117,7 @@ export default async function MovieDetailPage({ params }: { params: { id: string
                     <Languages className="w-5 h-5 mt-0.5 text-muted-foreground" />
                     <div>
                         <h3 className="font-semibold">Languages</h3>
-                        <p className="text-muted-foreground">{movie.spoken_languages.length} available</p>
+                        <p className="text-muted-foreground">{movie.spoken_languages.map(lang => lang.english_name).join(', ') || 'N/A'}</p>
                     </div>
                 </div>
                 <div className="flex items-start gap-3 p-4 rounded-lg bg-secondary/50">
