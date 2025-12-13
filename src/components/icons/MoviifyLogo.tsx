@@ -65,13 +65,10 @@ export const MoviifyLogo = ({ className, ...props }: React.SVGProps<SVGSVGElemen
       <g className="pause-bars">
         <rect x="135" y="10" width="8" height="35" rx="4" fill='white' />
         <rect x="150" y="10" width="8" height="35" rx="4" fill='white' />
-
-        <rect x="168" y="10" width="8" height="35" rx="4" fill='white' />
-        <rect x="183" y="10" width="8" height="35" rx="4" fill='white' />
       </g>
 
       <text
-        x="200"
+        x="168"
         y="42"
         fontSize="48"
         fontWeight="bold"
