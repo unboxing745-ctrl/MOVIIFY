@@ -1,0 +1,202 @@
+/**
+ * This ruleset enforces a security model for the "MyMovieFinder" application.
+ *
+ * Core Philosophy:
+ * The security model is built on two primary concepts: strict user ownership for all
+ * personal data and a public-read model for shared content like movies and reviews.
+ * Users have complete control over their own profile and related data (like search
+ * history), but cannot see or modify the data of other users. Community-generated
+ * content (reviews) is publicly visible but can only be modified by its original author.
+ *
+ * Data Structure:
+ * - /users/{userId}: Contains private user profiles and serves as the root for all
+ *   user-specific subcollections.
+ * - /users/{userId}/searchHistory/{searchHistoryId}: A subcollection storing a user's
+ *   private search history.
+ * - /movies/{movieId}: A top-level collection for movie details. This data is
+ *   considered public and is populated by a backend service, not by clients.
+ * - /movies/{movieId}/reviews/{reviewId}: A subcollection containing user-submitted
+ *   reviews for a specific movie.
+ *
+ * Key Security Decisions:
+ * - User Isolation: All data under /users/{userId} is strictly private. Rules
+ *   prevent one user from reading, writing, or even listing the contents of another
+ *   user's data tree.
+ * - No User Listing: The top-level /users collection cannot be listed by any client
+ *   to prevent user enumeration and protect privacy.
+ * - Backend-Managed Public Data: The /movies collection is publicly readable by anyone
+ *   but is not writable by any client. This assumes a trusted backend service or
+ *   admin populates and maintains this data from an external API.
+ * - Public, Owned Content: Reviews are publicly readable so all users can benefit from
+ *   them. However, create, update, and delete operations are restricted to the
+ *   original author of the review, which is enforced via a `userId` field on each
+ *   review document.
+ *
+ * Denormalization for Authorization:
+ * To ensure fast and secure authorization, rules rely on denormalized ownership fields.
+ * For example, each document in the `/movies/{movieId}/reviews` collection contains a
+ * `userId` field. This allows a direct check against the authenticated user's ID
+ * (`request.auth.uid`) without needing slow and costly `get()` calls to other documents.
+ * This pattern is critical for scalable security.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --------------------------------
+    // Helper Functions
+    // --------------------------------
+
+    /**
+     * Checks if a user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if the currently authenticated user's UID matches the given userId.
+     * Used to verify ownership of a resource.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Checks for ownership on an existing document. Used for safe updates and deletes.
+     * Prevents operations on non-existent documents.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * Validates that the user document being created has an 'id' field
+     * that matches the document's ID in the path.
+     */
+    function hasValidUserDataOnCreate(userId) {
+      return request.resource.data.id == userId;
+    }
+
+    /**
+     * Validates that the user document's 'id' field is immutable on update.
+     */
+    function isUserDataImmutable() {
+      return request.resource.data.id == resource.data.id;
+    }
+
+    /**
+     * Validates that the search history document being created has a 'userId' field
+     * that matches the user's ID from the path.
+     */
+    function hasValidSearchHistoryDataOnCreate(userId) {
+      return request.resource.data.userId == userId;
+    }
+
+    /**
+     * Validates that the search history 'userId' field is immutable on update.
+     */
+    function isSearchHistoryDataImmutable() {
+      return request.resource.data.userId == resource.data.userId;
+    }
+
+    /**
+     * Validates that a new review is being created by the signed-in user and that
+     * it is being placed under the correct movie.
+     */
+    function hasValidReviewDataOnCreate(movieId) {
+      return isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.movieId == movieId;
+    }
+
+    /**
+     * Validates that a review's core relational fields (userId, movieId) are
+     * not changed during an update.
+     */
+    function isReviewDataImmutable() {
+      return request.resource.data.userId == resource.data.userId
+        && request.resource.data.movieId == resource.data.movieId;
+    }
+
+    /**
+     * Checks if the authenticated user is the owner of an existing review document.
+     */
+    function isExistingReviewOwner() {
+      return resource != null && isOwner(resource.data.userId);
+    }
+
+    // --------------------------------
+    // User Data Rules
+    // --------------------------------
+
+    /**
+     * @description Controls access to user profile documents.
+     * @path /users/{userId}
+     * @allow (get, update, delete) A signed-in user (auth.uid: 'user123') can manage their own document at /users/user123.
+     * @allow (create) A new user (auth.uid: 'user123') can create their profile document at /users/user123.
+     * @deny (get) A user ('user456') cannot read the profile of another user ('user123').
+     * @deny (list) No user can list the /users collection.
+     * @principle Restricts access to a user's own data tree and prevents user enumeration.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId) && hasValidUserDataOnCreate(userId);
+      allow update: if isExistingOwner(userId) && isUserDataImmutable();
+      allow delete: if isExistingOwner(userId);
+
+      /**
+       * @description Controls access to a user's private search history.
+       * @path /users/{userId}/searchHistory/{searchHistoryId}
+       * @allow (get, list, create, update, delete) A user ('user123') can fully manage their own search history documents under /users/user123/searchHistory.
+       * @deny (get) A user ('user456') cannot access any search history document under /users/user123/searchHistory.
+       * @principle Enforces strict ownership for a user's private subcollection data.
+       */
+      match /searchHistory/{searchHistoryId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && hasValidSearchHistoryDataOnCreate(userId);
+        allow update: if isExistingOwner(userId) && isSearchHistoryDataImmutable();
+        allow delete: if isExistingOwner(userId);
+      }
+    }
+
+    // --------------------------------
+    // Movie & Review Rules
+    // --------------------------------
+
+    /**
+     * @description Controls access to the public collection of movie data.
+     * @path /movies/{movieId}
+     * @allow (get, list) Any user, signed-in or anonymous, can read movie data.
+     * @deny (create, update, delete) No client can write to the movies collection; it is managed by a backend service.
+     * @principle Secures a public data collection by making it read-only for all clients.
+     */
+    match /movies/{movieId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+
+      /**
+       * @description Controls access to user-generated reviews for a movie.
+       * @path /movies/{movieId}/reviews/{reviewId}
+       * @allow (get, list) Any user, signed-in or anonymous, can read reviews.
+       * @allow (create) A signed-in user can create a review for a movie, correctly setting their own userId.
+       * @allow (update, delete) A user can only update or delete a review they previously created.
+       * @deny (update) A user ('user456') cannot update a review created by another user ('user123').
+       * @deny (create) A user ('user123') cannot create a review and assign ownership to someone else ('user456').
+       * @principle Enables public reads for community content while enforcing document ownership for writes.
+       */
+      match /reviews/{reviewId} {
+        allow get: if true;
+        allow list: if true;
+        allow create: if hasValidReviewDataOnCreate(movieId);
+        allow update: if isExistingReviewOwner() && isReviewDataImmutable();
+        allow delete: if isExistingReviewOwner();
+      }
+    }
+  }
+}

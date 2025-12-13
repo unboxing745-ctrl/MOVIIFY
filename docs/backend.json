@@ -1,0 +1,253 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the ReelFinder application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the user.",
+          "format": "email"
+        },
+        "username": {
+          "type": "string",
+          "description": "Username of the user."
+        },
+        "joinDate": {
+          "type": "string",
+          "description": "Date and time the user joined the platform.",
+          "format": "date-time"
+        },
+        "likedMovieIds": {
+          "type": "array",
+          "description": "References to liked Movies. (Relationship: User 1:N Movie)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "username",
+        "joinDate"
+      ]
+    },
+    "Movie": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Movie",
+      "type": "object",
+      "description": "Represents a movie in the ReelFinder application, fetched from an external API.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the movie entity (typically from the external API)."
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the movie."
+        },
+        "description": {
+          "type": "string",
+          "description": "Brief summary or plot description of the movie."
+        },
+        "posterUrl": {
+          "type": "string",
+          "description": "URL of the movie's poster image.",
+          "format": "uri"
+        },
+        "genre": {
+          "type": "string",
+          "description": "Genre of the movie (e.g., Action, Comedy, Drama)."
+        },
+        "streamingPlatforms": {
+          "type": "array",
+          "description": "List of streaming platforms where the movie is available.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "isFreeOnPlatforms": {
+          "type": "boolean",
+          "description": "Boolean indicating if the movie is free on available platforms."
+        },
+        "languageCount": {
+          "type": "number",
+          "description": "The number of languages this movie is available in"
+        },
+        "subtitleCount": {
+          "type": "number",
+          "description": "The number of subtitle languages available for this movie."
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "description",
+        "posterUrl",
+        "genre"
+      ]
+    },
+    "Review": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Review",
+      "type": "object",
+      "description": "Represents a review of a movie written by a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the review entity."
+        },
+        "movieId": {
+          "type": "string",
+          "description": "Reference to Movie. (Relationship: Movie 1:N Review)"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Review)"
+        },
+        "rating": {
+          "type": "number",
+          "description": "Rating given by the user for the movie (e.g., 1-5 stars)."
+        },
+        "comment": {
+          "type": "string",
+          "description": "Textual comment or review written by the user."
+        },
+        "reviewDate": {
+          "type": "string",
+          "description": "Date and time when the review was submitted.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "movieId",
+        "userId",
+        "rating",
+        "comment",
+        "reviewDate"
+      ]
+    },
+    "SearchHistory": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SearchHistory",
+      "type": "object",
+      "description": "Represents a user's search query.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the search history entry."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N SearchHistory)"
+        },
+        "query": {
+          "type": "string",
+          "description": "The search query entered by the user."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Timestamp of when the search was performed.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "query",
+        "timestamp"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles.  Access is restricted to the user themselves.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/searchHistory/{searchHistoryId}",
+        "definition": {
+          "entityName": "SearchHistory",
+          "schema": {
+            "$ref": "#/backend/entities/SearchHistory"
+          },
+          "description": "Stores the search history of each user. Authorization rules ensure only the user can access their own search history.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "searchHistoryId",
+              "description": "The unique identifier of the search history entry."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/movies/{movieId}",
+        "definition": {
+          "entityName": "Movie",
+          "schema": {
+            "$ref": "#/backend/entities/Movie"
+          },
+          "description": "Stores movie information fetched from the external API (TMDB/OMDB). This collection is publicly readable.",
+          "params": [
+            {
+              "name": "movieId",
+              "description": "The unique identifier of the movie."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/movies/{movieId}/reviews/{reviewId}",
+        "definition": {
+          "entityName": "Review",
+          "schema": {
+            "$ref": "#/backend/entities/Review"
+          },
+          "description": "Stores user reviews for each movie.  Reviews are associated with a user and a movie.",
+          "params": [
+            {
+              "name": "movieId",
+              "description": "The unique identifier of the movie."
+            },
+            {
+              "name": "reviewId",
+              "description": "The unique identifier of the review."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to support the ReelFinder application's features, including movie search, user authentication, reviews, and personalized recommendations. The structure prioritizes authorization independence and simplifies security rules.  Authorization Independence is achieved by avoiding `get()` calls in rules. Path-based ownership is leveraged where applicable, and the membership map pattern is employed for collaborative access where appropriate. This design allows for atomic operations and straightforward debugging.\n\n*   `/users/{userId}`: Stores user profiles.  Access is restricted to the user themselves.\n*   `/users/{userId}/searchHistory/{searchHistoryId}`: Stores the search history of each user. Authorization rules ensure only the user can access their own search history.\n*   `/movies/{movieId}`: Stores movie information fetched from the external API (TMDB/OMDB). This collection is publicly readable.\n*   `/movies/{movieId}/reviews/{reviewId}`: Stores user reviews for each movie.  Reviews are associated with a user and a movie.\n\n**Authorization Independence & QAPs**:\n\n*   **User Data**:  User profiles and search history are stored under `/users/{userId}`, providing path-based ownership. This structure ensures that only the authenticated user can access their data.\n*   **Movie Data**:  Movie data fetched from the external API is stored in the `/movies/{movieId}` collection and is publicly readable (QAP: allows listing movies).  The decision to make this public simplifies retrieval of movies from the API.\n*   **Reviews:** Reviews are created in the subcollection `/movies/{movieId}/reviews/{reviewId}`. Authorization rules are simple to implement to ensure users can only create and manage reviews they own. This ensures Authorization Independence by not needing to perform database reads to establish authorization.\n\nThis structure is designed to support the core features of the application efficiently and securely, enabling the required QAPs while maintaining a clear and easily maintainable security model."
+  }
+}
