@@ -11,6 +11,7 @@ import { fetchTMDb, getImageUrl } from '@/lib/tmdb';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSearchParams, useParams } from 'next/navigation';
 import { NetflixLogo } from '@/components/icons/NetflixLogo';
+import Link from 'next/link';
 
 type DetailData = (MovieDetails | TVDetails) & { credits: Credits; 'watch/providers': { results: WatchProviders } };
 
@@ -186,12 +187,18 @@ export default function MovieDetailPage() {
             {uniqueProviders.length > 0 ? (
                 <div className="grid gap-4 md:grid-cols-2">
                     {uniqueProviders.map(p => (
-                        <div key={`${p.provider_id}-${p.type}`} className="flex items-center gap-4 bg-secondary p-3 rounded-lg">
+                         <a 
+                           key={`${p.provider_id}-${p.type}`} 
+                           href={watchProviders?.link || '#'} 
+                           target="_blank" 
+                           rel="noopener noreferrer"
+                           className="flex items-center gap-4 bg-secondary p-3 rounded-lg hover:bg-secondary/80 transition-colors"
+                         >
                             {p.provider_name === 'Netflix' ? <NetflixLogo className="h-10 w-10 shrink-0" />
                             : <Image src={getImageUrl(p.logo_path, 'w92')} alt={p.provider_name} width={40} height={40} className="rounded-md shrink-0" />}
                             <span className="flex-grow font-semibold">{p.provider_name}</span>
                              <Badge variant={p.type === 'Stream' ? 'default' : 'secondary'} className="shrink-0">{p.type}</Badge>
-                        </div>
+                         </a>
                     ))}
                 </div>
             ) : (
