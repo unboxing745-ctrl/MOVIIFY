@@ -20,44 +20,11 @@ interface Genre {
   name: string;
 }
 
-function SearchBar() {
+function SearchAndFilterContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const defaultQuery = searchParams.get('q') || '';
-  
-    const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      const formData = new FormData(event.currentTarget);
-      const query = formData.get('q') as string;
-      const current = new URLSearchParams(Array.from(searchParams.entries()));
-      
-      if (query) {
-        current.set('q', query);
-      } else {
-        current.delete('q');
-      }
-
-      const searchPath = current.toString() ? `?${current.toString()}` : '/search';
-      router.push(`/search${searchPath.startsWith('?') ? '' : '?'}${current.toString()}`);
-    };
-  
-    return (
-      <form onSubmit={handleSearch} className="flex-1 flex gap-2">
-        <Input
-          type="search"
-          name="q"
-          placeholder="Search for a movie..."
-          className="text-base h-12"
-          defaultValue={defaultQuery}
-          aria-label="Search movies"
-        />
-      </form>
-    );
-  }
-
-function Filters() {
-    const router = useRouter();
-    const searchParams = useSearchParams();
+    const defaultGenre = searchParams.get('with_genres') || 'all';
     const [genres, setGenres] = useState<Genre[]>([]);
   
     useEffect(() => {
@@ -66,50 +33,62 @@ function Filters() {
       });
     }, []);
 
-    const handleFilterChange = (type: 'genre', value: string) => {
-        const current = new URLSearchParams(Array.from(searchParams.entries()));
-        const key = type === 'genre' ? 'with_genres' : '';
+    const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      const formData = new FormData(event.currentTarget);
+      const query = formData.get('q') as string;
+      const genre = formData.get('with_genres') as string;
+      
+      const current = new URLSearchParams();
+      
+      if (query) {
+        current.set('q', query);
+      }
+      if (genre && genre !== 'all') {
+        current.set('with_genres', genre);
+      }
 
-        if (value && value !== 'all') {
-            current.set(key, value);
-        } else {
-            current.delete(key);
-        }
-        
-        const search = current.toString();
-        const query = search ? `?${search}` : "";
+      const search = current.toString();
+      const searchPath = search ? `?${search}` : '/search';
 
-        router.push(`/search${query}`);
-    }
+      router.push(`/search${searchPath}`);
+    };
   
     return (
-      <div className="flex gap-2">
-        <Select onValueChange={(value) => handleFilterChange('genre', value)} defaultValue={searchParams.get('with_genres') || 'all'}>
-          <SelectTrigger className="w-[220px] h-12 text-base">
-            <SelectValue placeholder="Genre" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Genres</SelectItem>
-            {genres.map((genre) => (
-              <SelectItem key={genre.id} value={String(genre.id)}>{genre.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button type="submit" size="lg" className="h-12" form='search-form'>
-          <Search className="mr-2 h-5 w-5" />
-          Search
-        </Button>
-      </div>
+        <form onSubmit={handleSearch} id="search-form" className="flex flex-col md:flex-row gap-4">
+            <Input
+                type="search"
+                name="q"
+                placeholder="Search for a movie..."
+                className="text-base h-12 flex-1"
+                defaultValue={defaultQuery}
+                aria-label="Search movies"
+            />
+            <div className="flex gap-2">
+                <Select name="with_genres" defaultValue={defaultGenre}>
+                    <SelectTrigger className="w-full md:w-[220px] h-12 text-base">
+                        <SelectValue placeholder="Genre" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Genres</SelectItem>
+                        {genres.map((genre) => (
+                        <SelectItem key={genre.id} value={String(genre.id)}>{genre.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <Button type="submit" size="lg" className="h-12">
+                    <Search className="mr-2 h-5 w-5" />
+                    Search
+                </Button>
+            </div>
+      </form>
     );
   }
 
 export default function SearchAndFilter() {
   return (
-    <div className="flex flex-col md:flex-row gap-4">
-        <Suspense>
-            <SearchBar />
-            <Filters />
-        </Suspense>
-    </div>
+    <Suspense fallback={<div>Loading search...</div>}>
+        <SearchAndFilterContent />
+    </Suspense>
   );
 }
