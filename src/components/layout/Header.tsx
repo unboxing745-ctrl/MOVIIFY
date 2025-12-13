@@ -42,7 +42,7 @@ export default function Header() {
       <div className="container flex h-20 items-center">
         <div className="mr-4 flex items-center">
           <Link href="/" className="flex items-center gap-2 mr-6">
-            <MoviifyLogo className="w-40 h-auto" />
+            <MoviifyLogo className="w-48 h-auto" />
           </Link>
           <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
             <Link href="/" className="transition-colors hover:text-primary text-foreground/80">
