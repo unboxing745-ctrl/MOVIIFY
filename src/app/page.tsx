@@ -2,6 +2,7 @@
 import { Suspense } from 'react';
 import SearchAndFilter from '@/components/movies/SearchAndFilter';
 import { Clapperboard } from 'lucide-react';
+import { Recommendations } from '@/components/movies/Recommendations';
 
 export default function Home() {
   return (
@@ -22,6 +23,12 @@ export default function Home() {
          <Suspense fallback={<div className="h-12 w-full bg-secondary animate-pulse rounded-lg" />}>
            <SearchAndFilter />
          </Suspense>
+       </div>
+       
+       <div className="px-4 sm:px-6 lg:px-8">
+        <Suspense>
+            <Recommendations />
+        </Suspense>
        </div>
     </div>
   );
