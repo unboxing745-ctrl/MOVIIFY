@@ -2,10 +2,10 @@ import { MovieResult } from './types';
 
 function getBaseUrl() {
   if (typeof window !== 'undefined') {
-    // Client-side requests can use a relative path
-    return '/api/tmdb';
+    // Client-side: Construct a full URL using the window's origin.
+    return `${window.location.origin}/api/tmdb`;
   }
-  // Server-side requests need an absolute path
+  // Server-side: Use environment variables to construct the full URL.
   const host = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_VERCEL_URL || 'localhost:9002';
   const protocol = host.startsWith('localhost') ? 'http' : 'https';
   return `${protocol}://${host}/api/tmdb`;
