@@ -7,8 +7,10 @@ import {
   Search,
   Clapperboard,
   LogIn,
+  LogOut,
   UserPlus,
   UserCircle,
+  Loader,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -30,35 +32,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useState, useEffect } from 'react';
-
-// Mock authentication state
-const useAuth = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    // In a real app, you'd check for a token in localStorage or a cookie
-    // For this mock, we'll just simulate it.
-    const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    setIsAuthenticated(loggedIn);
-  }, []);
-
-  const login = () => {
-    localStorage.setItem('isLoggedIn', 'true');
-    setIsAuthenticated(true);
-  };
-  const logout = () => {
-    localStorage.removeItem('isLoggedIn');
-    setIsAuthenticated(false);
-  };
-
-
-  return { isAuthenticated, login, logout };
-};
+import { useUser, useAuth } from '@/firebase';
+import { signOut } from 'firebase/auth';
+import { Skeleton } from '../ui/skeleton';
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { isAuthenticated, logout } = useAuth();
+  const auth = useAuth();
+  const { user, isUserLoading } = useUser();
 
   const menuItems = [
     {
@@ -74,9 +55,87 @@ export function AppSidebar() {
   ];
 
   const handleLogout = () => {
-    logout();
-    // In a real app, you would also likely redirect to the homepage
-    // window.location.href = '/';
+    signOut(auth);
+  };
+
+  const renderUserAuth = () => {
+    if (isUserLoading) {
+      return (
+        <div className="flex items-center gap-3 w-full px-2">
+            <Skeleton className="h-8 w-8 rounded-full" />
+            <div className='space-y-2'>
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-3 w-32" />
+            </div>
+        </div>
+      );
+    }
+
+    if (user) {
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="justify-start w-full px-2">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user.photoURL || undefined} alt={user.displayName || user.email || ''} />
+                  <AvatarFallback>
+                    {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-left">
+                  <p className="font-medium text-sm truncate">
+                    {user.displayName || 'User'}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {user.email}
+                  </p>
+                </div>
+              </div>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56 mb-2" align="end" forceMount>
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">
+                  {user.displayName || 'User'}
+                </p>
+                <p className="text-xs leading-none text-muted-foreground">
+                  {user.email}
+                </p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              <UserCircle className="mr-2 h-4 w-4" />
+              <span>Profile</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Log out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    }
+
+    return (
+      <div className="flex flex-col gap-2">
+        <Button asChild>
+          <Link href="/login">
+            <LogIn className="mr-2" />
+            Log In
+          </Link>
+        </Button>
+        <Button asChild variant="secondary">
+          <Link href="/signup">
+            <UserPlus className="mr-2" />
+            Sign Up
+          </Link>
+        </Button>
+      </div>
+    );
   }
 
   return (
@@ -109,61 +168,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="p-4">
         <SidebarSeparator className="mb-4" />
-        {isAuthenticated ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="justify-start w-full px-2">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src="/avatars/01.png" alt="@shadcn" />
-                    <AvatarFallback>CN</AvatarFallback>
-                  </Avatar>
-                  <div className="text-left">
-                    <p className="font-medium text-sm">CinemaFan</p>
-                    <p className="text-xs text-muted-foreground">
-                      fan@example.com
-                    </p>
-                  </div>
-                </div>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 mb-2" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">CinemaFan</p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    fan@example.com
-                  </p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <UserCircle className="mr-2 h-4 w-4" />
-                <span>Profile</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>
-                <LogIn className="mr-2 h-4 w-4" />
-                <span>Log out</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          <div className="flex flex-col gap-2">
-            <Button asChild>
-              <Link href="/login">
-                <LogIn className="mr-2" />
-                Log In
-              </Link>
-            </Button>
-            <Button asChild variant="secondary">
-              <Link href="/signup">
-                <UserPlus className="mr-2" />
-                Sign Up
-              </Link>
-            </Button>
-          </div>
-        )}
+        {renderUserAuth()}
       </SidebarFooter>
     </Sidebar>
   );

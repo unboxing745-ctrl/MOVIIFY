@@ -21,6 +21,10 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { useAuth, useUser } from '@/firebase';
+import { initiateEmailSignUp } from '@/firebase/non-blocking-login';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 const signupSchema = z
   .object({
@@ -37,6 +41,10 @@ const signupSchema = z
   });
 
 export default function SignupPage() {
+  const auth = useAuth();
+  const { user } = useUser();
+  const router = useRouter();
+
   const form = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -47,11 +55,15 @@ export default function SignupPage() {
     },
   });
 
+    useEffect(() => {
+    if (user) {
+      router.push('/');
+    }
+  }, [user, router]);
+
+
   const onSubmit = (values: z.infer<typeof signupSchema>) => {
-    // Mock signup logic
-    console.log('Signing up with:', values);
-    localStorage.setItem('isLoggedIn', 'true');
-    window.location.href = '/';
+    initiateEmailSignUp(auth, values.email, values.password);
   };
 
   return (
@@ -122,8 +134,8 @@ export default function SignupPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full">
-                Create Account
+              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? 'Creating account...' : 'Create Account'}
               </Button>
             </form>
           </Form>

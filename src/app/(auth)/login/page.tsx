@@ -21,6 +21,10 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { useAuth, useUser } from '@/firebase';
+import { initiateEmailSignIn } from '@/firebase/non-blocking-login';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
@@ -28,6 +32,9 @@ const loginSchema = z.object({
 });
 
 export default function LoginPage() {
+  const auth = useAuth();
+  const { user } = useUser();
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -37,11 +44,14 @@ export default function LoginPage() {
     },
   });
 
+  useEffect(() => {
+    if (user) {
+      router.push('/');
+    }
+  }, [user, router]);
+
   const onSubmit = (values: z.infer<typeof loginSchema>) => {
-    // Mock login logic
-    console.log('Logging in with:', values);
-    localStorage.setItem('isLoggedIn', 'true');
-    window.location.href = '/';
+    initiateEmailSignIn(auth, values.email, values.password);
   };
 
   return (
@@ -86,8 +96,8 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full">
-                Login
+              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? 'Logging in...' : 'Login'}
               </Button>
             </form>
           </Form>
