@@ -36,12 +36,10 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased" suppressHydrationWarning>
         <FirebaseClientProvider>
-          <div className="min-h-screen flex flex-col">
-            <Header />
-            <main className="flex-1 p-4 sm:p-6 lg:p-8">
-              <Suspense>{children}</Suspense>
-            </main>
-          </div>
+          <Header />
+          <main>
+            <Suspense>{children}</Suspense>
+          </main>
         </FirebaseClientProvider>
         <Toaster />
       </body>
