@@ -32,7 +32,7 @@ export default function Home() {
             <div className="flex items-center gap-3">
               <Sparkles className="w-8 h-8 text-primary" />
               <h2 className="text-3xl font-bold font-headline">
-                Popular
+                Recommendation
               </h2>
             </div>
             <Suspense fallback={<div className="h-96 w-full bg-secondary animate-pulse rounded-lg" />}>
