@@ -1,3 +1,4 @@
+
 import { Suspense } from 'react';
 import { Clapperboard, Film, Sparkles, TrendingUp } from 'lucide-react';
 import MovieGrid from '@/components/movies/MovieGrid';
@@ -47,7 +48,7 @@ export default function Home() {
               </h2>
             </div>
             <Suspense fallback={<div className="h-96 w-full bg-secondary animate-pulse rounded-lg" />}>
-              <MovieGrid path="movie/popular" />
+              <MovieGrid path="trending/all/week" />
             </Suspense>
           </div>
         </section>
