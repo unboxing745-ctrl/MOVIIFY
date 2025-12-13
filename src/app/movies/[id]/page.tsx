@@ -1,25 +1,49 @@
-import { getMovieById, getReviewsByMovieId } from '@/lib/data';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
-import Rating from '@/components/movies/Rating';
 import { Clock, Film, Users, Video } from 'lucide-react';
-import ReviewCard from '@/components/movies/ReviewCard';
 import SentimentSummary from '@/components/movies/SentimentSummary';
 import ReviewForm from '@/components/movies/ReviewForm';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { fetchTMDb, getImageUrl } from '@/lib/tmdb';
+import type { MovieDetails, Review } from '@/lib/types';
 
-export default function MovieDetailPage({ params }: { params: { id: string } }) {
-  const movie = getMovieById(params.id);
+// Mock reviews for now
+const getReviewsByMovieId = (movieId: string): Review[] => {
+    return [
+        {
+            id: '1',
+            movieId: movieId,
+            userId: '1',
+            userName: 'CinemaFan',
+            userAvatar: '/avatars/01.png',
+            rating: 4,
+            comment: "A masterpiece of modern cinema. The acting was superb and the story was captivating.",
+            createdAt: new Date(Date.now() - 86400000 * 2).toISOString(), // 2 days ago
+        },
+        {
+            id: '2',
+            movieId: movieId,
+            userId: '2',
+            userName: 'MovieMaven',
+            userAvatar: '/avatars/02.png',
+            rating: 5,
+            comment: "Absolutely stunning visuals and a soundtrack that will stick with you for days. Highly recommended!",
+            createdAt: new Date(Date.now() - 86400000 * 5).toISOString(), // 5 days ago
+        }
+    ]
+}
 
-  if (!movie) {
+
+export default async function MovieDetailPage({ params }: { params: { id: string } }) {
+  const movie = await fetchTMDb<MovieDetails>(`movie/${params.id}`);
+
+  if (!movie || !movie.id) {
     notFound();
   }
 
   const reviews = getReviewsByMovieId(params.id);
-  const placeholder = PlaceHolderImages.find((p) => p.id === movie.posterId);
-  const imageUrl = placeholder?.imageUrl ?? 'https://picsum.photos/seed/placeholder/500/750';
-  const imageHint = placeholder?.imageHint ?? 'movie poster';
+  const posterUrl = movie.poster_path ? getImageUrl(movie.poster_path) : 'https://picsum.photos/seed/placeholder/500/750';
+  const releaseYear = movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A';
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -27,12 +51,12 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
         <div className="md:col-span-1">
           <div className="aspect-[2/3] relative rounded-lg overflow-hidden shadow-xl">
             <Image
-              src={imageUrl}
+              src={posterUrl}
               alt={`Poster for ${movie.title}`}
               fill
               sizes="(max-width: 768px) 100vw, 33vw"
               className="object-cover"
-              data-ai-hint={imageHint}
+              data-ai-hint="movie poster"
               priority
             />
           </div>
@@ -42,8 +66,8 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               {movie.genres.map((genre) => (
-                <Badge key={genre} variant="secondary">
-                  {genre}
+                <Badge key={genre.id} variant="secondary">
+                  {genre.name}
                 </Badge>
               ))}
             </div>
@@ -53,30 +77,29 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
             <div className="flex items-center gap-4 text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
-                <span>{movie.year}</span>
+                <span>{releaseYear}</span>
               </div>
               <div className="flex items-center gap-2">
-                <Rating rating={movie.rating} />
-                <span className="font-semibold">{movie.rating.toFixed(1)}</span>
+                <span className="font-semibold">{movie.vote_average.toFixed(1)} / 10</span>
               </div>
             </div>
           </div>
 
-          <p className="text-lg text-foreground/80">{movie.description}</p>
+          <p className="text-lg text-foreground/80">{movie.overview}</p>
 
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="flex items-start gap-3">
+             <div className="flex items-start gap-3">
               <Video className="w-5 h-5 mt-0.5 text-muted-foreground" />
               <div>
-                <h3 className="font-semibold">Director</h3>
-                <p className="text-muted-foreground">{movie.director}</p>
+                <h3 className="font-semibold">Status</h3>
+                <p className="text-muted-foreground">{movie.status}</p>
               </div>
             </div>
-            <div className="flex items-start gap-3">
+             <div className="flex items-start gap-3">
               <Users className="w-5 h-5 mt-0.5 text-muted-foreground" />
               <div>
-                <h3 className="font-semibold">Starring</h3>
-                <p className="text-muted-foreground">{movie.actors.join(', ')}</p>
+                <h3 className="font-semibold">Popularity</h3>
+                <p className="text-muted-foreground">{movie.popularity.toFixed(0)}</p>
               </div>
             </div>
           </div>
@@ -99,7 +122,7 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
         </section>
 
         <section>
-            <ReviewForm movieId={movie.id} />
+            <ReviewForm movieId={String(movie.id)} />
         </section>
       </div>
     </div>

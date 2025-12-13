@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { getPersonalizedRecommendations } from '@/ai/flows/personalized-recommendations';
-import { getMovies } from '@/lib/data';
-import type { Movie } from '@/lib/types';
+import type { MovieResult } from '@/lib/types';
 import MovieCard from './MovieCard';
 import { Skeleton } from '@/components/ui/skeleton';
+import { fetchTMDb } from '@/lib/tmdb';
 
 // Mock user data for demonstration
 const mockUserData = {
@@ -14,8 +14,18 @@ const mockUserData = {
   preferredGenres: ['Drama', 'Crime'],
 };
 
+async function getMoviesByTitles(titles: string[]): Promise<MovieResult[]> {
+    const moviePromises = titles.map(async (title) => {
+        const searchResults = await fetchTMDb<{ results: MovieResult[] }>('search/movie', { query: title });
+        return searchResults.results[0];
+    });
+    const movies = await Promise.all(moviePromises);
+    return movies.filter(Boolean); // Filter out any null/undefined results
+}
+
+
 export function Recommendations() {
-  const [recommendations, setRecommendations] = useState<Movie[]>([]);
+  const [recommendations, setRecommendations] = useState<MovieResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,10 +34,7 @@ export function Recommendations() {
       try {
         setLoading(true);
         const result = await getPersonalizedRecommendations(mockUserData);
-        const allMovies = getMovies();
-        const recommendedMovies = allMovies.filter((movie) =>
-          result.recommendations.includes(movie.title)
-        );
+        const recommendedMovies = await getMoviesByTitles(result.recommendations);
         setRecommendations(recommendedMovies);
       } catch (e) {
         setError('Could not fetch recommendations.');
