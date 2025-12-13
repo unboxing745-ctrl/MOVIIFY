@@ -1,26 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getPersonalizedRecommendations } from '@/ai/flows/personalized-recommendations';
 import type { MovieResult } from '@/lib/types';
 import MovieCard from './MovieCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { fetchTMDb } from '@/lib/tmdb';
 
-// Mock user data for demonstration
-const mockUserData = {
-  viewingHistory: ['The Shawshank Redemption', 'The Godfather'],
-  ratings: { 'The Shawshank Redemption': 5, 'The Godfather': 4 },
-  preferredGenres: ['Drama', 'Crime'],
-};
-
-async function getMoviesByTitles(titles: string[]): Promise<MovieResult[]> {
-    const moviePromises = titles.map(async (title) => {
-        const searchResults = await fetchTMDb<{ results: MovieResult[] }>('search/movie', { query: title });
-        return searchResults.results[0];
-    });
-    const movies = await Promise.all(moviePromises);
-    return movies.filter(Boolean); // Filter out any null/undefined results
+function shuffleArray<T>(array: T[]): T[] {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
 }
 
 
@@ -33,9 +25,12 @@ export function Recommendations() {
     const fetchRecommendations = async () => {
       try {
         setLoading(true);
-        const result = await getPersonalizedRecommendations(mockUserData);
-        const recommendedMovies = await getMoviesByTitles(result.recommendations);
-        setRecommendations(recommendedMovies);
+        const popularMoviesData = await fetchTMDb<{ results: MovieResult[] }>('discover/movie');
+        
+        // Take top 12 movies and shuffle them
+        const shuffledMovies = shuffleArray(popularMoviesData.results.slice(0, 12));
+        
+        setRecommendations(shuffledMovies);
       } catch (e) {
         setError('Could not fetch recommendations.');
         console.error(e);
@@ -52,11 +47,10 @@ export function Recommendations() {
       <h2 className="text-3xl font-bold font-headline mb-6">For You</h2>
       {loading && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-          {Array.from({ length: 6 }).map((_, index) => (
+          {Array.from({ length: 12 }).map((_, index) => (
             <div key={index} className="space-y-2">
               <Skeleton className="h-[300px] w-full" />
               <Skeleton className="h-4 w-4/5" />
-              <Skeleton className="h-4 w-2/5" />
             </div>
           ))}
         </div>
