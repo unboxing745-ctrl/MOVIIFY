@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -55,7 +56,9 @@ export function AppSidebar() {
   ];
 
   const handleLogout = () => {
-    signOut(auth);
+    if (auth) {
+      signOut(auth);
+    }
   };
 
   const renderUserAuth = () => {
@@ -141,11 +144,14 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" className="flex items-center justify-center gap-2 group-data-[collapsible=icon]:hidden">
           <Clapperboard className="w-8 h-8 text-primary" />
           <h1 className="text-2xl font-bold font-headline text-primary">
             Moviify
           </h1>
+        </Link>
+         <Link href="/" className="hidden items-center justify-center group-data-[collapsible=icon]:flex">
+          <Clapperboard className="w-8 h-8 text-primary" />
         </Link>
       </SidebarHeader>
       <SidebarContent>
