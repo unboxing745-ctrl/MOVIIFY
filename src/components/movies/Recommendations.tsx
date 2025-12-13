@@ -25,10 +25,22 @@ export function Recommendations() {
     const fetchRecommendations = async () => {
       try {
         setLoading(true);
-        const popularMoviesData = await fetchTMDb<{ results: MovieResult[] }>('discover/movie');
+        // Fetch K-dramas by querying TV shows with Korean language and Drama genre
+        const kdramaData = await fetchTMDb<{ results: any[] }>('discover/tv', {
+          with_original_language: 'ko',
+          with_genres: '18', // Genre ID for Drama
+          sort_by: 'popularity.desc',
+        });
         
-        // Take top 12 movies and shuffle them
-        const shuffledMovies = shuffleArray(popularMoviesData.results.slice(0, 12));
+        // Adapt TV show data to MovieResult format
+        const adaptedResults: MovieResult[] = kdramaData.results.map(tvShow => ({
+          ...tvShow,
+          title: tvShow.name, // Map 'name' to 'title'
+          release_date: tvShow.first_air_date, // Map 'first_air_date' to 'release_date'
+        }));
+
+        // Take top 20 and shuffle them to get a random 12
+        const shuffledMovies = shuffleArray(adaptedResults.slice(0, 20)).slice(0, 12);
         
         setRecommendations(shuffledMovies);
       } catch (e) {
