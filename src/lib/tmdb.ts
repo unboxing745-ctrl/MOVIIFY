@@ -1,3 +1,4 @@
+
 import { MovieResult } from './types';
 
 function getBaseUrl() {
