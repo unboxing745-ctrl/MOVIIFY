@@ -20,7 +20,7 @@ import { useSearchParams } from 'next/navigation';
 
 type DetailData = MovieDetails & TVDetails;
 
-export default function MovieDetailPage({ params }: { params: { id: string } }) {
+export default function MovieDetailPage({ params: { id } }: { params: { id: string } }) {
   const searchParams = useSearchParams();
   const type = searchParams.get('type') || 'movie';
 
@@ -30,13 +30,13 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
   useEffect(() => {
     async function getDetails() {
       setLoading(true);
-      const endpoint = `${type}/${params.id}?append_to_response=videos`;
+      const endpoint = `${type}/${id}?append_to_response=videos`;
       const data = await fetchTMDb<DetailData>(endpoint);
       setDetails(data);
       setLoading(false);
     }
     getDetails();
-  }, [params.id, type]);
+  }, [id, type]);
 
   if (loading || !details) {
     return (
