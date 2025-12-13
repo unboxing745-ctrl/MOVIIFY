@@ -13,7 +13,7 @@ interface SearchState {
   hasMore: boolean;
 }
 
-export function useSearchMovies(query: string, genre: string) {
+export function useSearchMovies(query: string, genre: string, sortBy: string) {
   const [state, setState] = useState<SearchState>({
     movies: [],
     loading: true,
@@ -46,10 +46,13 @@ export function useSearchMovies(query: string, genre: string) {
         results = combinedResults;
         total_pages = Math.max(movieData.total_pages, tvData.total_pages);
       } else {
-        // Discover movies by genre
+        // Discover movies by genre or sort order
         const params: Record<string, string> = { page: String(page) };
          if (genre && genre !== 'all') {
             params.with_genres = genre;
+        }
+        if (sortBy) {
+            params.sort_by = sortBy;
         }
         const data = await fetchTMDb<{ results: MovieResult[]; total_pages: number }>('discover/movie', params);
         results = data.results.map(r => ({...r, media_type: 'movie'}));
@@ -65,7 +68,7 @@ export function useSearchMovies(query: string, genre: string) {
         movies: page === 1 ? results : [...prevState.movies, ...newMovies],
         loading: false,
         page,
-        hasMore: page < total_pages,
+        hasMore: page < total_pages && page < 500, // TMDB limit
       }));
     } catch (err) {
       setState(prevState => ({
@@ -74,10 +77,10 @@ export function useSearchMovies(query: string, genre: string) {
         error: 'Failed to fetch movies.',
       }));
     }
-  }, [query, genre]);
+  }, [query, genre, sortBy]);
 
   useEffect(() => {
-    // Reset and fetch movies when query or genre changes
+    // Reset and fetch movies when query, genre or sortBy changes
     setState({
         movies: [],
         loading: true,
@@ -86,7 +89,7 @@ export function useSearchMovies(query: string, genre: string) {
         hasMore: true,
     });
     loadMovies(1);
-  }, [query, genre, loadMovies]);
+  }, [query, genre, sortBy, loadMovies]);
 
   const loadMore = () => {
     if (state.hasMore && !state.loading) {

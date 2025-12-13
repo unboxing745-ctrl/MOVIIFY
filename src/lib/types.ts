@@ -30,6 +30,11 @@ export interface User {
 }
 
 // TMDB API Types
+export interface Genre {
+    id: number;
+    name: string;
+}
+
 export interface MovieResult {
   adult: boolean;
   backdrop_path: string;

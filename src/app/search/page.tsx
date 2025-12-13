@@ -9,21 +9,36 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
-import SearchAndFilter from '@/components/movies/SearchAndFilter';
+import { fetchTMDb } from '@/lib/tmdb';
+import type { Genre } from '@/lib/types';
+import { useEffect, useState } from 'react';
 
 function SearchResults() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q') || '';
-  const genre = searchParams.get('with_genres') || '';
+  const genreId = searchParams.get('with_genres') || '';
+  const sortBy = searchParams.get('sort_by') || '';
+  
+  const [genres, setGenres] = useState<Genre[]>([]);
+  useEffect(() => {
+    fetchTMDb<{ genres: Genre[] }>('genre/movie/list').then((data) => {
+      setGenres(data.genres);
+    });
+  }, []);
 
   const { movies, loading, error, hasMore, loadMore } = useSearchMovies(
     query,
-    genre
+    genreId,
+    sortBy
   );
 
   const getTitle = () => {
     if (query) return `Search results for "${query}"`;
-    if (genre) return `Discover Movies`;
+    if (genreId) {
+        const genre = genres.find(g => String(g.id) === genreId);
+        return genre ? `${genre.name} Movies` : 'Discover Movies';
+    }
+    if (sortBy === 'vote_average.desc') return 'Top Rated Movies';
     return 'Discover Movies';
   };
 
@@ -31,9 +46,6 @@ function SearchResults() {
     <div className="space-y-8">
       <div className="space-y-4">
         <h1 className="text-3xl font-bold font-headline">{getTitle()}</h1>
-        <div className="px-4 sm:px-6 lg:px-8 -mx-4 sm:-mx-6 lg:-mx-8">
-          <SearchAndFilter />
-        </div>
       </div>
 
       {error && (
@@ -44,12 +56,13 @@ function SearchResults() {
         </Alert>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
         {loading && movies.length === 0
-          ? Array.from({ length: 10 }).map((_, i) => (
+          ? Array.from({ length: 12 }).map((_, i) => (
               <div key={i} className="space-y-2">
-                <Skeleton className="aspect-video w-full" />
+                <Skeleton className="aspect-[2/3] w-full" />
                 <Skeleton className="h-5 w-4/5" />
+                 <Skeleton className="h-4 w-1/2" />
               </div>
             ))
           : movies.map((movie) => <MovieCard key={movie.id} movie={movie} />)}
