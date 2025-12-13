@@ -14,7 +14,7 @@ export default function Home() {
         <section className="relative flex flex-col items-center justify-center text-center pt-20 pb-20 md:pb-32 lg:pb-40 bg-background text-foreground">
            <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background" />
            <div className="relative z-10 space-y-6">
-             <MoviifyLogo className="w-64 md:w-80 h-auto text-primary" />
+             <MoviifyLogo className="w-80 md:w-96 h-auto text-primary" />
               <p className="text-xl md:text-2xl text-foreground/80">
                 Discover your next favorite film.
               </p>

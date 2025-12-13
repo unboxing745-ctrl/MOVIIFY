@@ -13,7 +13,7 @@ export default function SplashScreen() {
       <div className="relative">
         <MoviifyLogo
           className={cn(
-            'w-48 h-auto text-primary animate-pulse-grow'
+            'w-64 h-auto text-primary animate-pulse-grow'
           )}
         />
       </div>
