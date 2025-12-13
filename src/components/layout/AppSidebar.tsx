@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Home,
-  Search,
   Clapperboard,
   LogIn,
   LogOut,
@@ -47,11 +46,6 @@ export function AppSidebar() {
       href: '/',
       label: 'Home',
       icon: Home,
-    },
-    {
-      href: '/search',
-      label: 'Discover',
-      icon: Search,
     },
   ];
 

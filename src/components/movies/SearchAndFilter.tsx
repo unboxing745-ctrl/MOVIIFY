@@ -39,19 +39,16 @@ function SearchAndFilterContent() {
       const query = formData.get('q') as string;
       const genre = formData.get('with_genres') as string;
       
-      const current = new URLSearchParams();
+      const params = new URLSearchParams();
       
       if (query) {
-        current.set('q', query);
+        params.set('q', query);
       }
       if (genre && genre !== 'all') {
-        current.set('with_genres', genre);
+        params.set('with_genres', genre);
       }
 
-      const search = current.toString();
-      const searchPath = search ? `?${search}` : '/search';
-
-      router.push(`/search${searchPath}`);
+      router.push(`/search?${params.toString()}`);
     };
   
     return (
