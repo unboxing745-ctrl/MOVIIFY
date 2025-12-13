@@ -37,7 +37,7 @@ export default function RootLayout({
       <body className="font-body antialiased" suppressHydrationWarning>
         <FirebaseClientProvider>
           <Header />
-          <main>
+          <main className="pt-20">
             <Suspense>{children}</Suspense>
           </main>
         </FirebaseClientProvider>

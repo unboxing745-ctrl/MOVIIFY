@@ -11,16 +11,33 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import SearchBar from '../search/SearchBar';
 import { useUser } from '@/firebase';
+import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
 
 export default function Header() {
     const router = useRouter();
     const { user } = useUser();
+    const pathname = usePathname();
+    const [isScrolled, setIsScrolled] = useState(false);
+
+    const isHomePage = pathname === '/';
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 10);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
   
   return (
-    <header className="absolute top-0 z-50 w-full bg-transparent">
+    <header className={cn(
+        "fixed top-0 z-50 w-full transition-colors duration-300",
+        isHomePage && !isScrolled ? "bg-transparent" : "bg-background/90 backdrop-blur-sm border-b border-border"
+    )}>
       <div className="container flex h-20 items-center">
         <div className="mr-4 flex items-center">
           <Link href="/" className="flex items-center gap-2 mr-6">

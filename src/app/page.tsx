@@ -9,7 +9,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       <main className="flex-1">
-        <section className="relative flex flex-col items-center justify-center text-center py-20 md:py-32 lg:py-40 bg-background text-foreground">
+        <section className="relative flex flex-col items-center justify-center text-center -mt-20 pt-20 pb-20 md:pb-32 lg:pb-40 bg-background text-foreground">
            <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background" />
            <div className="relative z-10 space-y-6">
               <div className="flex items-center justify-center gap-4">
