@@ -3,16 +3,9 @@
 
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Languages, Star, Youtube, Clapperboard, CalendarIcon, User, Video } from 'lucide-react';
+import { Languages, Star, Youtube, Clapperboard, CalendarIcon, User, Video, Captions } from 'lucide-react';
 import type { MovieDetails, TVDetails, Credits } from '@/lib/types';
-import { Button } from '@/components/ui/button';
-import { NetflixLogo } from '@/components/icons/NetflixLogo';
 import MovieReviews from '@/components/movies/MovieReviews';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 import { useEffect, useState } from 'react';
 import { fetchTMDb, getImageUrl } from '@/lib/tmdb';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -32,6 +25,7 @@ export default function MovieDetailPage() {
 
   useEffect(() => {
     async function getDetails() {
+      if (!id) return;
       setLoading(true);
       const endpoint = `${type}/${id}?append_to_response=videos,credits`;
       try {
@@ -43,35 +37,39 @@ export default function MovieDetailPage() {
         setLoading(false);
       }
     }
-    if (id) {
-        getDetails();
-    }
+    getDetails();
   }, [id, type]);
 
   if (loading || !details) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
-        <div className="flex flex-wrap items-center gap-4">
-            <Skeleton className="h-6 w-20" />
-            <Skeleton className="h-6 w-24" />
-            <Skeleton className="h-6 w-24" />
-        </div>
-        <Skeleton className="h-24 w-full" />
-        <div className="grid grid-cols-2 gap-8">
-            <div className='space-y-2'>
-                <Skeleton className="h-6 w-32" />
-                <Skeleton className="h-5 w-40" />
+        <div className="container mx-auto px-4 py-8">
+            <div className="grid md:grid-cols-[300px_1fr] gap-8">
+                <Skeleton className="aspect-[2/3] w-full rounded-lg" />
+                <div className="space-y-6">
+                    <Skeleton className="h-10 w-3/4" />
+                    <div className="flex flex-wrap items-center gap-4">
+                        <Skeleton className="h-6 w-20" />
+                        <Skeleton className="h-6 w-24" />
+                        <Skeleton className="h-6 w-24" />
+                    </div>
+                    <Skeleton className="h-24 w-full" />
+                    <div className="grid grid-cols-2 gap-8">
+                        <div className='space-y-2'>
+                            <Skeleton className="h-6 w-32" />
+                            <Skeleton className="h-5 w-40" />
+                        </div>
+                        <div className='space-y-2'>
+                            <Skeleton className="h-6 w-32" />
+                            <Skeleton className="h-16 w-full" />
+                        </div>
+                    </div>
+                </div>
             </div>
-             <div className='space-y-2'>
-                <Skeleton className="h-6 w-32" />
-                <Skeleton className="h-16 w-full" />
+             <div className='mt-12 space-y-4'>
+                <Skeleton className="h-8 w-40" />
+                <Skeleton className="aspect-video w-full" />
             </div>
         </div>
-         <div className='space-y-2'>
-            <Skeleton className="h-6 w-32" />
-            <Skeleton className="aspect-video w-full" />
-        </div>
-      </div>
     );
   }
 
@@ -86,66 +84,89 @@ export default function MovieDetailPage() {
     (v) => v.type === 'Trailer' && v.site === 'YouTube'
   );
 
+  const availableSubtitles = [
+      ...details.spoken_languages.slice(0, 2).map(l => l.english_name),
+      'English',
+      'Spanish',
+      'French'
+  ].filter((v, i, a) => a.indexOf(v) === i); // Remove duplicates
+
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
-        <div>
-             <h1 className="text-4xl md:text-5xl font-bold font-headline tracking-tight mb-4">
-                  {title}
-            </h1>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-muted-foreground">
-                <div className="flex items-center gap-2">
-                    <CalendarIcon className="w-5 h-5" />
-                    <span>{releaseYear}</span>
+    <div className="container mx-auto px-4 py-8 space-y-12">
+        <div className="grid md:grid-cols-[300px_1fr] gap-8 md:gap-12">
+            <div className="w-full">
+                <div className="aspect-[2/3] w-full relative">
+                    <Image
+                        src={getImageUrl(details.poster_path, 'w500')}
+                        alt={`Poster for ${title}`}
+                        fill
+                        className="object-cover rounded-lg"
+                        sizes="(max-width: 768px) 100vw, 300px"
+                    />
                 </div>
-                 <div className="flex items-center gap-2">
-                    <Star className="w-5 h-5" />
-                    <span>{details.vote_average.toFixed(1)}</span>
+            </div>
+            <div className="space-y-6">
+                <div>
+                    <h1 className="text-4xl md:text-5xl font-bold font-headline tracking-tight mb-4">
+                        {title}
+                    </h1>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                            <CalendarIcon className="w-5 h-5" />
+                            <span>{releaseYear}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Star className="w-5 h-5 text-amber-400" />
+                            <span>{details.vote_average.toFixed(1)}</span>
+                        </div>
+                        <div className="flex items-center flex-wrap gap-2">
+                            <Clapperboard className="w-5 h-5" />
+                            {details.genres.map((genre) => (
+                            <Badge key={genre.id} variant="outline">
+                                {genre.name}
+                            </Badge>
+                            ))}
+                        </div>
+                    </div>
                 </div>
-                 <div className="flex items-center flex-wrap gap-2">
-                    <Clapperboard className="w-5 h-5" />
-                    {details.genres.map((genre) => (
-                      <Badge key={genre.id} variant="outline">
-                        {genre.name}
-                      </Badge>
-                    ))}
-              </div>
-            </div>
-        </div>
-      
-      <p className="text-lg text-foreground/80">{details.overview}</p>
+            
+                <p className="text-lg text-foreground/80">{details.overview}</p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {director && (
-            <div className="space-y-2">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                    <Video className="text-primary" />
-                    Director
-                </h2>
-                <p className="text-muted-foreground">{director.name}</p>
-            </div>
-        )}
-        {cast && cast.length > 0 && (
-            <div className="space-y-2">
-                 <h2 className="text-xl font-bold flex items-center gap-2">
-                    <User className="text-primary" />
-                    Cast
-                </h2>
-                <p className="text-muted-foreground">{cast.map(c => c.name).join(', ')}</p>
-            </div>
-        )}
-      </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                    {director && (
+                        <div className="space-y-2">
+                            <h2 className="text-xl font-bold flex items-center gap-2">
+                                <Video className="text-primary" />
+                                Director
+                            </h2>
+                            <p className="text-muted-foreground">{director.name}</p>
+                        </div>
+                    )}
+                    {cast && cast.length > 0 && (
+                        <div className="space-y-2">
+                            <h2 className="text-xl font-bold flex items-center gap-2">
+                                <User className="text-primary" />
+                                Cast
+                            </h2>
+                            <p className="text-muted-foreground">{cast.map(c => c.name).join(', ')}</p>
+                        </div>
+                    )}
+                </div>
 
-       <div className="space-y-2">
-            <h2 className="text-xl font-bold flex items-center gap-2">
-                <Languages className="text-primary" />
-                Languages
-            </h2>
-            <p className="text-muted-foreground">{details.spoken_languages.map(l => l.english_name).join(', ')}</p>
+                <div className="space-y-2">
+                      <h2 className="text-xl font-bold flex items-center gap-2">
+                          <Captions className="text-primary" />
+                          Subtitles
+                      </h2>
+                      <p className="text-muted-foreground">{availableSubtitles.join(', ')}</p>
+                </div>
+            </div>
         </div>
 
       {trailer && (
         <div className="space-y-4">
-           <h2 className="text-xl font-bold flex items-center gap-2">
+           <h2 className="text-2xl font-bold flex items-center gap-2">
                 <Youtube className="text-primary" />
                 Trailer
             </h2>
