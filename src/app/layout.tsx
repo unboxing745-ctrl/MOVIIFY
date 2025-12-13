@@ -1,6 +1,4 @@
 import type { Metadata } from 'next';
-import { AppSidebar } from '@/components/layout/AppSidebar';
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 import { Suspense } from 'react';
@@ -37,16 +35,11 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased" suppressHydrationWarning>
         <FirebaseClientProvider>
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset>
-              <div className="min-h-screen flex flex-col">
-                <main className="flex-1 p-4 sm:p-6 lg:p-8">
-                  <Suspense>{children}</Suspense>
-                </main>
-              </div>
-            </SidebarInset>
-          </SidebarProvider>
+          <div className="min-h-screen flex flex-col">
+            <main className="flex-1 p-4 sm:p-6 lg:p-8">
+              <Suspense>{children}</Suspense>
+            </main>
+          </div>
         </FirebaseClientProvider>
         <Toaster />
       </body>

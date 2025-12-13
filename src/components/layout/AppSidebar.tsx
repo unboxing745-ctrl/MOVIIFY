@@ -10,17 +10,8 @@ import {
   SidebarFooter,
   SidebarMenu,
 } from '@/components/ui/sidebar';
-import { useAuth } from '@/firebase';
-import { signOut } from 'firebase/auth';
 
 export function AppSidebar() {
-  const auth = useAuth();
-
-  const handleLogout = () => {
-    if (auth) {
-      signOut(auth);
-    }
-  };
 
   return (
     <Sidebar>
