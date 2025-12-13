@@ -1,15 +1,22 @@
 import { MovieResult } from './types';
 
-// Use a relative path for client-side requests, and an absolute path for server-side.
-const BASE_URL = typeof window === 'undefined' 
-  ? 'http://localhost:9002/api/tmdb' 
-  : '/api/tmdb';
+function getBaseUrl() {
+  if (typeof window !== 'undefined') {
+    // Client-side requests can use a relative path
+    return '/api/tmdb';
+  }
+  // Server-side requests need an absolute path
+  const host = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_VERCEL_URL || 'localhost:9002';
+  const protocol = host.startsWith('localhost') ? 'http' : 'https';
+  return `${protocol}://${host}/api/tmdb`;
+}
 
 export async function fetchTMDb<T>(
   path: string,
   params: Record<string, string> = {}
 ): Promise<T> {
-  const url = new URL(BASE_URL, typeof window === 'undefined' ? undefined : window.location.origin);
+  const baseUrl = getBaseUrl();
+  const url = new URL(baseUrl);
   url.searchParams.append('path', path);
   for (const [key, value] of Object.entries(params)) {
     url.searchParams.append(key, value);
