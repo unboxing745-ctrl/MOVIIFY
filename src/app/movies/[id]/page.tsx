@@ -96,15 +96,23 @@ export default function MovieDetailPage() {
       'French'
   ].filter((v, i, a) => a.indexOf(v) === i); // Remove duplicates
 
-  const watchProviders = details['watch/providers']?.results?.US;
+  const watchProviderResults = details['watch/providers']?.results;
   
   const unifiedProviders: UnifiedProvider[] = [];
-  if (watchProviders) {
-    watchProviders.flatrate?.forEach(p => unifiedProviders.push({ ...p, type: 'Stream' }));
-    watchProviders.rent?.forEach(p => unifiedProviders.push({ ...p, type: 'Rent' }));
-    watchProviders.buy?.forEach(p => unifiedProviders.push({ ...p, type: 'Buy' }));
-    watchProviders.free?.forEach(p => unifiedProviders.push({ ...p, type: 'Free' }));
+  let watchLink = '#';
+
+  if (watchProviderResults) {
+    Object.values(watchProviderResults).forEach(countryProviders => {
+      if (countryProviders.link && watchLink === '#') {
+        watchLink = countryProviders.link;
+      }
+      countryProviders.flatrate?.forEach(p => unifiedProviders.push({ ...p, type: 'Stream' }));
+      countryProviders.rent?.forEach(p => unifiedProviders.push({ ...p, type: 'Rent' }));
+      countryProviders.buy?.forEach(p => unifiedProviders.push({ ...p, type: 'Buy' }));
+      countryProviders.free?.forEach(p => unifiedProviders.push({ ...p, type: 'Free' }));
+    });
   }
+
   const uniqueProviders = Array.from(new Map(unifiedProviders.map(p => [`${p.provider_id}-${p.type}`, p])).values());
   uniqueProviders.sort((a,b) => (a.display_priority || Infinity) - (b.display_priority || Infinity));
 
@@ -198,7 +206,7 @@ export default function MovieDetailPage() {
                     {uniqueProviders.map(p => (
                          <a 
                            key={`${p.provider_id}-${p.type}`} 
-                           href={watchProviders?.link || '#'} 
+                           href={watchLink} 
                            target="_blank" 
                            rel="noopener noreferrer"
                            className="flex items-center gap-4 bg-secondary p-3 rounded-lg hover:bg-secondary/80 transition-colors"
