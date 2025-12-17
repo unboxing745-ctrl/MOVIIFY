@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -165,30 +166,6 @@
         "query",
         "timestamp"
       ]
-    },
-    "WatchProvider": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "WatchProvider",
-      "description": "Cached watch provider information for a movie or TV show.",
-      "type": "object",
-      "properties": {
-        "tmdbId": {
-          "type": "string"
-        },
-        "type": {
-          "type": "string",
-          "enum": ["movie", "tv"]
-        },
-        "providers": {
-          "type": "object",
-          "description": "The watch provider data from TMDB for a specific region."
-        },
-        "cachedAt": {
-          "type": "string",
-          "format": "date-time"
-        }
-      },
-      "required": ["tmdbId", "type", "providers", "cachedAt"]
     }
   },
   "auth": {
@@ -270,25 +247,8 @@
             }
           ]
         }
-      },
-      {
-        "path": "/watchProviders/{watchProviderId}",
-        "definition": {
-          "entityName": "WatchProvider",
-          "schema": {
-            "$ref": "#/backend/entities/WatchProvider"
-          },
-          "description": "Caches watch provider data from TMDB. Publicly readable, only writable by backend.",
-          "params": [
-            {
-              "name": "watchProviderId",
-              "description": "The unique identifier, typically in the format '{type}_{tmdbId}'."
-            }
-          ]
-        }
       }
     ],
-    "reasoning": "The Firestore data structure is designed to support the ReelFinder application's features, including movie search, user authentication, reviews, and personalized recommendations. The structure prioritizes authorization independence and simplifies security rules.  Authorization Independence is achieved by avoiding `get()` calls in rules. Path-based ownership is leveraged where applicable, and the membership map pattern is employed for collaborative access where appropriate. This design allows for atomic operations and straightforward debugging.\n\n*   `/users/{userId}`: Stores user profiles.  Access is restricted to the user themselves.\n*   `/users/{userId}/searchHistory/{searchHistoryId}`: Stores the search history of each user. Authorization rules ensure only the user can access their own search history.\n*   `/movies/{movieId}`: Stores movie information fetched from the external API (TMDB/OMDB). This collection is publicly readable.\n*   `/movies/{movieId}/reviews/{reviewId}`: Stores user reviews for each movie.  Reviews are associated with a user and a movie.\n*   `/watchProviders/{watchProviderId}`: Caches the watch provider information for a given movie/show to reduce external API calls. This is publicly readable but should only be written to by a trusted backend process.\n\n**Authorization Independence & QAPs**:\n\n*   **User Data**:  User profiles and search history are stored under `/users/{userId}`, providing path-based ownership. This structure ensures that only the authenticated user can access their data.\n*   **Movie Data**:  Movie data fetched from the external API is stored in the `/movies/{movieId}` collection and is publicly readable (QAP: allows listing movies).  The decision to make this public simplifies retrieval of movies from the API.\n*   **Reviews:** Reviews are created in the subcollection `/movies/{movieId}/reviews/{reviewId}`. Authorization rules are simple to implement to ensure users can only create and manage reviews they own. This ensures Authorization Independence by not needing to perform database reads to establish authorization.\n*   **Watch Providers Cache:** The `watchProviders` collection is designed to be read by any client but only written to by a trusted backend (the API route), ensuring data integrity."
+    "reasoning": "The Firestore data structure is designed to support the ReelFinder application's features, including movie search, user authentication, reviews, and personalized recommendations. The structure prioritizes authorization independence and simplifies security rules.  Authorization Independence is achieved by avoiding `get()` calls in rules. Path-based ownership is leveraged where applicable, and the membership map pattern is employed for collaborative access where appropriate. This design allows for atomic operations and straightforward debugging.\n\n*   `/users/{userId}`: Stores user profiles.  Access is restricted to the user themselves.\n*   `/users/{userId}/searchHistory/{searchHistoryId}`: Stores the search history of each user. Authorization rules ensure only the user can access their own search history.\n*   `/movies/{movieId}`: Stores movie information fetched from the external API (TMDB/OMDB). This collection is publicly readable.\n*   `/movies/{movieId}/reviews/{reviewId}`: Stores user reviews for each movie.  Reviews are associated with a user and a movie."
   }
 }
-    

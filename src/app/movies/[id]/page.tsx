@@ -4,24 +4,14 @@
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Star, Youtube, Clapperboard, CalendarIcon, User, Video, Captions, Languages } from 'lucide-react';
-import type { MovieDetails, TVDetails, Credits, WatchProviders, WatchProviderDetails } from '@/lib/types';
+import type { MovieDetails, TVDetails, Credits } from '@/lib/types';
 import MovieReviews from '@/components/movies/MovieReviews';
 import { useEffect, useState } from 'react';
 import { fetchTMDb, getImageUrl } from '@/lib/tmdb';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSearchParams, useParams } from 'next/navigation';
-import { NetflixLogo } from '@/components/icons/NetflixLogo';
-import Link from 'next/link';
 
 type DetailData = (MovieDetails | TVDetails) & { credits: Credits };
-
-type UnifiedProvider = WatchProviderDetails & { type: 'Stream' | 'Rent' | 'Buy' };
-
-type GroupedProvider = WatchProviderDetails & { 
-  types: ('Stream' | 'Rent' | 'Buy')[],
-  country: string;
-};
-
 
 export default function MovieDetailPage() {
   const params = useParams();
@@ -30,7 +20,6 @@ export default function MovieDetailPage() {
   const type = searchParams.get('type') || 'movie';
 
   const [details, setDetails] = useState<DetailData | null>(null);
-  const [watchProviders, setWatchProviders] = useState<WatchProviders | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,14 +28,8 @@ export default function MovieDetailPage() {
       setLoading(true);
       const endpoint = `${type}/${id}?append_to_response=videos,credits`;
       try {
-        const [detailsData, providersData] = await Promise.all([
-          fetchTMDb<DetailData>(endpoint),
-          fetch(`/api/watch-providers?tmdbId=${id}&type=${type}`).then(res => res.json())
-        ]);
-        
+        const detailsData = await fetchTMDb<DetailData>(endpoint);
         setDetails(detailsData);
-        setWatchProviders({ 'RESULTS': providersData }); // Wrap in a format our component expects
-
       } catch (error) {
         console.error("Failed to fetch details:", error);
       } finally {
@@ -108,42 +91,6 @@ export default function MovieDetailPage() {
       'Spanish',
       'French'
   ].filter((v, i, a) => a.indexOf(v) === i); // Remove duplicates
-
-  const watchProviderResults = watchProviders;
-  
-  let watchLink = '#';
-  const groupedProviders = new Map<string, GroupedProvider>();
-
-  if (watchProviderResults && watchProviderResults.RESULTS) {
-    const countryProviders = watchProviderResults.RESULTS;
-      if (countryProviders.link && watchLink === '#') {
-        watchLink = countryProviders.link;
-      }
-      
-      const processProviders = (providers: WatchProviderDetails[] | undefined, type: 'Stream' | 'Rent' | 'Buy') => {
-        providers?.forEach(p => {
-          const providerName = p.provider_name.includes('Amazon') ? 'Amazon Prime Video' : p.provider_name;
-          const providerKey = `${providerName}`;
-
-          if (groupedProviders.has(providerKey)) {
-            const existing = groupedProviders.get(providerKey)!;
-            if (!existing.types.includes(type)) {
-              existing.types.push(type);
-            }
-          } else {
-            groupedProviders.set(providerKey, { ...p, provider_name: providerName, types: [type], country: 'N/A' });
-          }
-        });
-      };
-
-      processProviders(countryProviders.flatrate, 'Stream');
-      processProviders(countryProviders.rent, 'Rent');
-      processProviders(countryProviders.buy, 'Buy');
-  }
-  
-  const uniqueProviders = Array.from(groupedProviders.values());
-  uniqueProviders.sort((a, b) => (a.display_priority || Infinity) - (b.display_priority || Infinity));
-
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-12 pt-28">
@@ -224,37 +171,6 @@ export default function MovieDetailPage() {
             </div>
         </div>
 
-        <div className="space-y-8">
-            <h2 className="text-2xl font-bold flex items-center gap-3">
-                <Video className="text-primary" />
-                Where to Watch
-            </h2>
-            {uniqueProviders.length > 0 ? (
-                <div className="grid gap-4 md:grid-cols-2">
-                    {uniqueProviders.map(p => (
-                         <a 
-                           key={`${p.provider_id}-${p.country}`} 
-                           href={watchLink} 
-                           target="_blank" 
-                           rel="noopener noreferrer"
-                           className="flex items-center gap-4 bg-secondary p-3 rounded-lg hover:bg-secondary/80 transition-colors"
-                         >
-                            {p.provider_name === 'Netflix' ? <NetflixLogo className="h-10 w-10 shrink-0" />
-                            : <Image src={getImageUrl(p.logo_path, 'w92')} alt={p.provider_name} width={40} height={40} className="rounded-md shrink-0" />}
-                            <span className="flex-grow font-semibold">{p.provider_name}</span>
-                             <div className="flex gap-1 shrink-0">
-                              {p.types.map(type => (
-                                <Badge key={type} variant={type === 'Stream' ? 'default' : 'secondary'}>{type}</Badge>
-                              ))}
-                             </div>
-                         </a>
-                    ))}
-                </div>
-            ) : (
-                <p className="text-muted-foreground">Streaming information is not available for this title.</p>
-            )}
-        </div>
-
       {trailer && (
         <div className="space-y-4">
            <h2 className="text-2xl font-bold flex items-center gap-2">
@@ -281,5 +197,3 @@ export default function MovieDetailPage() {
     </div>
   );
 }
-
-    

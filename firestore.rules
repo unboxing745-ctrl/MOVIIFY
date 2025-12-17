@@ -1,3 +1,4 @@
+
 /**
 /**
  * This ruleset enforces a security model for the "MyMovieFinder" application.
@@ -18,7 +19,6 @@
  *   considered public and is populated by a backend service, not by clients.
  * - /movies/{movieId}/reviews/{reviewId}: A subcollection containing user-submitted
  *   reviews for a specific movie.
- * - /watchProviders/{watchProviderId}: Caches watch provider data from TMDB.
  *
  * Key Security Decisions:
  * - User Isolation: All data under /users/{userId} is strictly private. Rules
@@ -26,8 +26,8 @@
  *   user's data tree.
  * - No User Listing: The top-level /users collection cannot be listed by any client
  *   to prevent user enumeration and protect privacy.
- * - Backend-Managed Public Data: The /movies and /watchProviders collections are publicly
- *   readable by anyone but are not writable by any client. This assumes a trusted backend
+ * - Backend-Managed Public Data: The /movies collection is publicly
+ *   readable by anyone but is not writable by any client. This assumes a trusted backend
  *   service or admin populates and maintains this data.
  * - Public, Owned Content: Reviews are publicly readable so all users can benefit from
  *   them. However, create, update, and delete operations are restricted to the
@@ -200,21 +200,5 @@ service cloud.firestore {
         allow delete: if isExistingReviewOwner();
       }
     }
-
-    /**
-     * @description Controls access to the cached watch provider data.
-     * @path /watchProviders/{watchProviderId}
-     * @allow (get, list) Any user can read the cached data.
-     * @deny (create, update, delete) No client can write to the cache; it is managed by a backend service.
-     * @principle Allows clients to read from the cache, but only the trusted backend can populate it.
-     */
-    match /watchProviders/{watchProviderId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if false; // Should only be written by the backend
-      allow update: if false;
-      allow delete: if false;
-    }
   }
 }
-    
