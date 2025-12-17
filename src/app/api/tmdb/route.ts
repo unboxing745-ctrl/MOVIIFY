@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -5,9 +6,9 @@ export async function GET(request: NextRequest) {
   const path = searchParams.get('path');
   const tmdbApiKey = process.env.TMDB_API_KEY;
 
-  if (!tmdbApiKey) {
+  if (!tmdbApiKey || tmdbApiKey === 'YOUR_TMDB_API_KEY_HERE') {
     return NextResponse.json(
-      { error: 'TMDB API key is not configured.' },
+      { error: 'TMDB API key is not configured. Please add your key to the .env.local file.' },
       { status: 500 }
     );
   }
