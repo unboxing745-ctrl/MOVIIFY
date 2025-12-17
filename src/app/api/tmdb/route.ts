@@ -6,10 +6,10 @@ export async function GET(request: NextRequest) {
   const path = searchParams.get('path');
   const tmdbApiKey = process.env.TMDB_API_KEY;
 
-  if (!tmdbApiKey) {
-    // This will now be the active path since the key was removed.
+  if (!tmdbApiKey || tmdbApiKey === "YOUR_TMDB_API_KEY_HERE") {
+    // This will now be the active path since the key was removed or is a placeholder.
     return NextResponse.json(
-      { error: 'TMDB API key is not configured. Please add it to your environment variables.' },
+      { error: 'TMDB API key is not configured. Please add it to your .env.local file.' },
       { status: 500 }
     );
   }
