@@ -15,7 +15,7 @@ import Link from 'next/link';
 
 type DetailData = (MovieDetails | TVDetails) & { credits: Credits; 'watch/providers': { results: WatchProviders } };
 
-type UnifiedProvider = WatchProviderDetails & { type: 'Stream' | 'Rent' | 'Buy' | 'Free' };
+type UnifiedProvider = WatchProviderDetails & { type: 'Stream' | 'Rent' | 'Buy' };
 
 export default function MovieDetailPage() {
   const params = useParams();
@@ -109,7 +109,6 @@ export default function MovieDetailPage() {
       countryProviders.flatrate?.forEach(p => unifiedProviders.push({ ...p, type: 'Stream' }));
       countryProviders.rent?.forEach(p => unifiedProviders.push({ ...p, type: 'Rent' }));
       countryProviders.buy?.forEach(p => unifiedProviders.push({ ...p, type: 'Buy' }));
-      countryProviders.free?.forEach(p => unifiedProviders.push({ ...p, type: 'Free' }));
     });
   }
 
@@ -249,7 +248,3 @@ export default function MovieDetailPage() {
     </div>
   );
 }
-
-    
-
-    
