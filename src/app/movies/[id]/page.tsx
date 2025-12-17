@@ -17,7 +17,10 @@ type DetailData = (MovieDetails | TVDetails) & { credits: Credits; 'watch/provid
 
 type UnifiedProvider = WatchProviderDetails & { type: 'Stream' | 'Rent' | 'Buy' };
 
-type GroupedProvider = WatchProviderDetails & { types: ('Stream' | 'Rent' | 'Buy')[] };
+type GroupedProvider = WatchProviderDetails & { 
+  types: ('Stream' | 'Rent' | 'Buy')[],
+  country: string;
+};
 
 
 export default function MovieDetailPage() {
@@ -105,7 +108,7 @@ export default function MovieDetailPage() {
   const groupedProviders = new Map<string, GroupedProvider>();
 
   if (watchProviderResults) {
-    Object.values(watchProviderResults).forEach(countryProviders => {
+    Object.entries(watchProviderResults).forEach(([country, countryProviders]) => {
       if (countryProviders.link && watchLink === '#') {
         watchLink = countryProviders.link;
       }
@@ -113,8 +116,8 @@ export default function MovieDetailPage() {
       const processProviders = (providers: WatchProviderDetails[] | undefined, type: 'Stream' | 'Rent' | 'Buy') => {
         providers?.forEach(p => {
           // Normalize Amazon provider names
-          const providerName = p.provider_name.includes('Amazon') ? 'Amazon' : p.provider_name;
-          const providerKey = `${providerName}-${p.provider_id}`;
+          const providerName = p.provider_name.includes('Amazon') ? 'Amazon Prime Video' : p.provider_name;
+          const providerKey = `${providerName}-${country}`; // Group by name and country
 
           if (groupedProviders.has(providerKey)) {
             const existing = groupedProviders.get(providerKey)!;
@@ -122,23 +125,7 @@ export default function MovieDetailPage() {
               existing.types.push(type);
             }
           } else {
-             // If it's a new Amazon entry, check if a generic 'Amazon' already exists
-             let existingAmazonKey: string | null = null;
-             for (const key of groupedProviders.keys()){
-                 if(key.startsWith('Amazon-')){
-                     existingAmazonKey = key;
-                     break;
-                 }
-             }
-
-             if(providerName === 'Amazon' && existingAmazonKey){
-                 const existing = groupedProviders.get(existingAmazonKey)!;
-                 if (!existing.types.includes(type)) {
-                    existing.types.push(type);
-                 }
-             } else {
-                groupedProviders.set(providerKey, { ...p, provider_name: providerName, types: [type] });
-             }
+            groupedProviders.set(providerKey, { ...p, provider_name: providerName, types: [type], country });
           }
         });
       };
@@ -149,30 +136,7 @@ export default function MovieDetailPage() {
     });
   }
   
-  // Post-process to merge any Amazon entries that might have slipped through with different IDs
-  const finalProvidersMap = new Map<string, GroupedProvider>();
-  let amazonProvider: GroupedProvider | null = null;
-
-  for (const provider of groupedProviders.values()) {
-      if (provider.provider_name.includes('Amazon')) {
-          if (!amazonProvider) {
-              amazonProvider = { ...provider, provider_name: 'Amazon Prime Video', types: [] };
-          }
-          provider.types.forEach(type => {
-              if (!amazonProvider!.types.includes(type)) {
-                  amazonProvider!.types.push(type);
-              }
-          });
-      } else {
-          finalProvidersMap.set(provider.provider_name, provider);
-      }
-  }
-
-  if (amazonProvider) {
-      finalProvidersMap.set('Amazon Prime Video', amazonProvider);
-  }
-
-  const uniqueProviders = Array.from(finalProvidersMap.values());
+  const uniqueProviders = Array.from(groupedProviders.values());
   uniqueProviders.sort((a, b) => (a.display_priority || Infinity) - (b.display_priority || Infinity));
 
 
@@ -264,7 +228,7 @@ export default function MovieDetailPage() {
                 <div className="grid gap-4 md:grid-cols-2">
                     {uniqueProviders.map(p => (
                          <a 
-                           key={p.provider_id} 
+                           key={`${p.provider_id}-${p.country}`} 
                            href={watchLink} 
                            target="_blank" 
                            rel="noopener noreferrer"
@@ -272,7 +236,7 @@ export default function MovieDetailPage() {
                          >
                             {p.provider_name === 'Netflix' ? <NetflixLogo className="h-10 w-10 shrink-0" />
                             : <Image src={getImageUrl(p.logo_path, 'w92')} alt={p.provider_name} width={40} height={40} className="rounded-md shrink-0" />}
-                            <span className="flex-grow font-semibold">{p.provider_name}</span>
+                            <span className="flex-grow font-semibold">{p.provider_name} <span className="text-muted-foreground font-normal text-sm">({p.country})</span></span>
                              <div className="flex gap-1 shrink-0">
                               {p.types.map(type => (
                                 <Badge key={type} variant={type === 'Stream' ? 'default' : 'secondary'}>{type}</Badge>
@@ -312,5 +276,3 @@ export default function MovieDetailPage() {
     </div>
   );
 }
-
-    
