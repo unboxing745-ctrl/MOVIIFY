@@ -70,9 +70,9 @@ export default function ProfilePage() {
   }, [user, isUserLoading, router]);
 
   const onProfileSubmit = async (values: z.infer<typeof profileSchema>) => {
-    if (!user || !auth) return;
+    if (!user || !auth?.currentUser) return;
     try {
-      await updateProfile(auth.currentUser!, {
+      await updateProfile(auth.currentUser, {
         displayName: values.displayName,
         photoURL: values.photoURL,
       });
@@ -118,7 +118,7 @@ export default function ProfilePage() {
             <div className="bg-secondary h-32" />
             <div className="flex items-end gap-4 p-6 -mt-16 relative">
                  <Avatar className="h-32 w-32 border-4 border-background">
-                    <AvatarImage src={user.photoURL || ''} alt={user.displayName || 'User'} />
+                    <AvatarImage src={user.photoURL ?? ''} alt={user.displayName || 'User'} />
                     <AvatarFallback className="text-4xl">
                     {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
                     </AvatarFallback>
