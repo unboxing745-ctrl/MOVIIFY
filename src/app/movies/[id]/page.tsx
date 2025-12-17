@@ -13,7 +13,7 @@ import { useSearchParams, useParams } from 'next/navigation';
 import { NetflixLogo } from '@/components/icons/NetflixLogo';
 import Link from 'next/link';
 
-type DetailData = (MovieDetails | TVDetails) & { credits: Credits; 'watch/providers': { results: WatchProviders } };
+type DetailData = (MovieDetails | TVDetails) & { credits: Credits };
 
 type UnifiedProvider = WatchProviderDetails & { type: 'Stream' | 'Rent' | 'Buy' };
 
@@ -30,16 +30,23 @@ export default function MovieDetailPage() {
   const type = searchParams.get('type') || 'movie';
 
   const [details, setDetails] = useState<DetailData | null>(null);
+  const [watchProviders, setWatchProviders] = useState<WatchProviders | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function getDetails() {
       if (!id) return;
       setLoading(true);
-      const endpoint = `${type}/${id}?append_to_response=videos,credits,watch/providers`;
+      const endpoint = `${type}/${id}?append_to_response=videos,credits`;
       try {
-        const data = await fetchTMDb<DetailData>(endpoint);
-        setDetails(data);
+        const [detailsData, providersData] = await Promise.all([
+          fetchTMDb<DetailData>(endpoint),
+          fetch(`/api/watch-providers?tmdbId=${id}&type=${type}`).then(res => res.json())
+        ]);
+        
+        setDetails(detailsData);
+        setWatchProviders({ 'RESULTS': providersData }); // Wrap in a format our component expects
+
       } catch (error) {
         console.error("Failed to fetch details:", error);
       } finally {
@@ -102,22 +109,21 @@ export default function MovieDetailPage() {
       'French'
   ].filter((v, i, a) => a.indexOf(v) === i); // Remove duplicates
 
-  const watchProviderResults = details['watch/providers']?.results;
+  const watchProviderResults = watchProviders;
   
   let watchLink = '#';
   const groupedProviders = new Map<string, GroupedProvider>();
 
-  if (watchProviderResults) {
-    Object.entries(watchProviderResults).forEach(([country, countryProviders]) => {
+  if (watchProviderResults && watchProviderResults.RESULTS) {
+    const countryProviders = watchProviderResults.RESULTS;
       if (countryProviders.link && watchLink === '#') {
         watchLink = countryProviders.link;
       }
       
       const processProviders = (providers: WatchProviderDetails[] | undefined, type: 'Stream' | 'Rent' | 'Buy') => {
         providers?.forEach(p => {
-          // Normalize Amazon provider names
           const providerName = p.provider_name.includes('Amazon') ? 'Amazon Prime Video' : p.provider_name;
-          const providerKey = `${providerName}-${country}`; // Group by name and country
+          const providerKey = `${providerName}`;
 
           if (groupedProviders.has(providerKey)) {
             const existing = groupedProviders.get(providerKey)!;
@@ -125,7 +131,7 @@ export default function MovieDetailPage() {
               existing.types.push(type);
             }
           } else {
-            groupedProviders.set(providerKey, { ...p, provider_name: providerName, types: [type], country });
+            groupedProviders.set(providerKey, { ...p, provider_name: providerName, types: [type], country: 'N/A' });
           }
         });
       };
@@ -133,7 +139,6 @@ export default function MovieDetailPage() {
       processProviders(countryProviders.flatrate, 'Stream');
       processProviders(countryProviders.rent, 'Rent');
       processProviders(countryProviders.buy, 'Buy');
-    });
   }
   
   const uniqueProviders = Array.from(groupedProviders.values());
@@ -236,7 +241,7 @@ export default function MovieDetailPage() {
                          >
                             {p.provider_name === 'Netflix' ? <NetflixLogo className="h-10 w-10 shrink-0" />
                             : <Image src={getImageUrl(p.logo_path, 'w92')} alt={p.provider_name} width={40} height={40} className="rounded-md shrink-0" />}
-                            <span className="flex-grow font-semibold">{p.provider_name} <span className="text-muted-foreground font-normal text-sm">({p.country})</span></span>
+                            <span className="flex-grow font-semibold">{p.provider_name}</span>
                              <div className="flex gap-1 shrink-0">
                               {p.types.map(type => (
                                 <Badge key={type} variant={type === 'Stream' ? 'default' : 'secondary'}>{type}</Badge>
