@@ -102,7 +102,7 @@ export default function MovieDetailPage() {
   const watchProviderResults = details['watch/providers']?.results;
   
   let watchLink = '#';
-  const groupedProviders = new Map<number, GroupedProvider>();
+  const groupedProviders = new Map<string, GroupedProvider>();
 
   if (watchProviderResults) {
     Object.values(watchProviderResults).forEach(countryProviders => {
@@ -112,13 +112,33 @@ export default function MovieDetailPage() {
       
       const processProviders = (providers: WatchProviderDetails[] | undefined, type: 'Stream' | 'Rent' | 'Buy') => {
         providers?.forEach(p => {
-          if (groupedProviders.has(p.provider_id)) {
-            const existing = groupedProviders.get(p.provider_id)!;
+          // Normalize Amazon provider names
+          const providerName = p.provider_name.includes('Amazon') ? 'Amazon' : p.provider_name;
+          const providerKey = `${providerName}-${p.provider_id}`;
+
+          if (groupedProviders.has(providerKey)) {
+            const existing = groupedProviders.get(providerKey)!;
             if (!existing.types.includes(type)) {
               existing.types.push(type);
             }
           } else {
-            groupedProviders.set(p.provider_id, { ...p, types: [type] });
+             // If it's a new Amazon entry, check if a generic 'Amazon' already exists
+             let existingAmazonKey: string | null = null;
+             for (const key of groupedProviders.keys()){
+                 if(key.startsWith('Amazon-')){
+                     existingAmazonKey = key;
+                     break;
+                 }
+             }
+
+             if(providerName === 'Amazon' && existingAmazonKey){
+                 const existing = groupedProviders.get(existingAmazonKey)!;
+                 if (!existing.types.includes(type)) {
+                    existing.types.push(type);
+                 }
+             } else {
+                groupedProviders.set(providerKey, { ...p, provider_name: providerName, types: [type] });
+             }
           }
         });
       };
@@ -128,8 +148,31 @@ export default function MovieDetailPage() {
       processProviders(countryProviders.buy, 'Buy');
     });
   }
+  
+  // Post-process to merge any Amazon entries that might have slipped through with different IDs
+  const finalProvidersMap = new Map<string, GroupedProvider>();
+  let amazonProvider: GroupedProvider | null = null;
 
-  const uniqueProviders = Array.from(groupedProviders.values());
+  for (const provider of groupedProviders.values()) {
+      if (provider.provider_name.includes('Amazon')) {
+          if (!amazonProvider) {
+              amazonProvider = { ...provider, provider_name: 'Amazon Prime Video', types: [] };
+          }
+          provider.types.forEach(type => {
+              if (!amazonProvider!.types.includes(type)) {
+                  amazonProvider!.types.push(type);
+              }
+          });
+      } else {
+          finalProvidersMap.set(provider.provider_name, provider);
+      }
+  }
+
+  if (amazonProvider) {
+      finalProvidersMap.set('Amazon Prime Video', amazonProvider);
+  }
+
+  const uniqueProviders = Array.from(finalProvidersMap.values());
   uniqueProviders.sort((a, b) => (a.display_priority || Infinity) - (b.display_priority || Infinity));
 
 
@@ -270,3 +313,4 @@ export default function MovieDetailPage() {
   );
 }
 
+    
