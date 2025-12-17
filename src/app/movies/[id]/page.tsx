@@ -171,7 +171,7 @@ export default function MovieDetailPage() {
 
                         <div className="flex items-center flex-wrap gap-2">
                             <Clapperboard className="w-5 h-5" />
-                            {details.genres.map((genre) => (
+                            {details.genres && details.genres.map((genre) => (
                             <Badge key={genre.id} variant="outline">
                                 {genre.name}
                             </Badge>
@@ -275,5 +275,6 @@ export default function MovieDetailPage() {
 
     </div>
   );
+}
 
     
