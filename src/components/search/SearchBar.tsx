@@ -1,28 +1,40 @@
+
 'use client';
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useFirestore, useUser } from "@/firebase";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
 export default function SearchBar() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const defaultQuery = searchParams.get('q') || '';
+    const { user } = useUser();
+    const firestore = useFirestore();
   
     const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       const formData = new FormData(event.currentTarget);
       const query = formData.get('q') as string;
       
-      const params = new URLSearchParams();
-      
-      if (query) {
-        params.set('q', query);
-      } else {
-        return; // Do not search if query is empty
+      if (!query) {
+        return;
       }
 
+      if (user && firestore) {
+        const historyCol = collection(firestore, `users/${user.uid}/searchHistory`);
+        addDoc(historyCol, {
+          query,
+          userId: user.uid,
+          timestamp: serverTimestamp(),
+        });
+      }
+
+      const params = new URLSearchParams();
+      params.set('q', query);
       router.push(`/search?${params.toString()}`);
     };
 

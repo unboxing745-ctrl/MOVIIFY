@@ -12,17 +12,19 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useUser } from '@/firebase';
+import { useFirestore, useUser } from '@/firebase';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { MoviifyLogo } from '../icons/MoviifyLogo';
 import { Input } from '../ui/input';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 export default function Header() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const defaultQuery = searchParams.get('q') || '';
   const { user } = useUser();
+  const firestore = useFirestore();
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -40,15 +42,22 @@ export default function Header() {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const query = formData.get('q') as string;
-    
-    const params = new URLSearchParams();
-    
-    if (query) {
-      params.set('q', query);
-    } else {
-      return; // Do not search if query is empty
+
+    if (!query) {
+      return;
     }
 
+    if (user && firestore) {
+      const historyCol = collection(firestore, `users/${user.uid}/searchHistory`);
+      addDoc(historyCol, {
+        query,
+        userId: user.uid,
+        timestamp: serverTimestamp(),
+      });
+    }
+
+    const params = new URLSearchParams();
+    params.set('q', query);
     router.push(`/search?${params.toString()}`);
   };
 

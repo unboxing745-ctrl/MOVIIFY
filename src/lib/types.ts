@@ -1,5 +1,6 @@
 
 
+import { Timestamp } from "firebase/firestore";
 
 // Local types (if you were to have them)
 export interface Movie {
@@ -29,6 +30,13 @@ export interface User {
   id: string;
   name: string;
   email: string;
+}
+
+export interface SearchHistory {
+    id: string;
+    userId: string;
+    query: string;
+    timestamp: Timestamp;
 }
 
 // TMDB API Types
