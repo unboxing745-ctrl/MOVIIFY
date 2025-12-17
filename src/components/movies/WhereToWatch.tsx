@@ -16,6 +16,7 @@ interface WhereToWatchProps {
 
 interface ProviderDisplayData {
     region: string;
+    link: string;
     flatrate: WatchProviders['US']['flatrate'];
     rent: WatchProviders['US']['rent'];
     buy: WatchProviders['US']['buy'];
@@ -42,6 +43,7 @@ export default function WhereToWatch({ tmdbId, type }: WhereToWatchProps) {
         if (region) {
             setProviders({
                 region,
+                link: data[region].link,
                 flatrate: data[region].flatrate,
                 rent: data[region].rent,
                 buy: data[region].buy
@@ -72,7 +74,14 @@ export default function WhereToWatch({ tmdbId, type }: WhereToWatchProps) {
             <h3 className="text-lg font-semibold mb-2">{title}</h3>
             <div className="flex flex-wrap gap-3">
             {sortedProviders.map((provider) => (
-                <div key={provider.provider_id} title={provider.provider_name} className="w-12 h-12 relative rounded-lg overflow-hidden border border-border">
+                <a 
+                    key={provider.provider_id} 
+                    href={providers?.link} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    title={provider.provider_name}
+                    className="w-12 h-12 relative rounded-lg overflow-hidden border border-border transition-transform hover:scale-105"
+                >
                     <Image
                         src={getImageUrl(provider.logo_path, 'w92')}
                         alt={provider.provider_name}
@@ -80,7 +89,7 @@ export default function WhereToWatch({ tmdbId, type }: WhereToWatchProps) {
                         className="object-cover"
                         sizes='48px'
                     />
-                </div>
+                </a>
             ))}
             </div>
         </div>
