@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { fetchTMDb, getImageUrl } from '@/lib/tmdb';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSearchParams, useParams } from 'next/navigation';
+import WhereToWatch from '@/components/movies/WhereToWatch';
 
 type DetailData = (MovieDetails | TVDetails) & { credits: Credits };
 
@@ -17,7 +18,8 @@ export default function MovieDetailPage() {
   const params = useParams();
   const id = params.id as string;
   const searchParams = useSearchParams();
-  const type = searchParams.get('type') || 'movie';
+  const typeParam = searchParams.get('type') || 'movie';
+  const type = typeParam === 'tv' ? 'tv' : 'movie';
 
   const [details, setDetails] = useState<DetailData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -118,7 +120,7 @@ export default function MovieDetailPage() {
                         </div>
                         <div className="flex items-center gap-2">
                             <Star className="w-5 h-5 text-amber-400" />
-                            <span>{typeof details.vote_average === 'number' ? details.vote_average.toFixed(1) : 'N/A'}</span>
+                             <span>{typeof details.vote_average === 'number' ? details.vote_average.toFixed(1) : 'N/A'}</span>
                         </div>
 
                         <div className="flex items-center flex-wrap gap-2">
@@ -167,6 +169,9 @@ export default function MovieDetailPage() {
                         </h2>
                         <p className="text-muted-foreground">{availableSubtitles.join(', ')}</p>
                     </div>
+                </div>
+                 <div className="pt-4">
+                    <WhereToWatch tmdbId={details.id} type={type} />
                 </div>
             </div>
         </div>

@@ -199,3 +199,9 @@ export interface WatchProviders {
     free?: WatchProviderDetails[];
   };
 }
+
+export interface WatchProvider {
+    id: string;
+    providers: WatchProviders;
+    cachedAt: Timestamp;
+}

@@ -166,6 +166,28 @@
         "query",
         "timestamp"
       ]
+    },
+    "WatchProvider": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "WatchProvider",
+      "type": "object",
+      "description": "Represents cached watch provider data for a movie or TV show.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the cached entry, e.g., 'movie_123'."
+        },
+        "providers": {
+          "type": "object",
+          "description": "The nested object containing watch provider data from TMDB."
+        },
+        "cachedAt": {
+          "type": "string",
+          "description": "The timestamp when the data was cached.",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "providers", "cachedAt"]
     }
   },
   "auth": {
@@ -247,8 +269,24 @@
             }
           ]
         }
+      },
+      {
+        "path": "/watchProviders/{watchProviderId}",
+        "definition": {
+          "entityName": "WatchProvider",
+          "schema": {
+            "$ref": "#/backend/entities/WatchProvider"
+          },
+          "description": "Caches watch provider data from TMDB to reduce API calls. Data is read by clients but only written by the backend.",
+          "params": [
+            {
+              "name": "watchProviderId",
+              "description": "The unique ID, composed of type and TMDB ID (e.g., 'movie_123')."
+            }
+          ]
+        }
       }
     ],
-    "reasoning": "The Firestore data structure is designed to support the ReelFinder application's features, including movie search, user authentication, reviews, and personalized recommendations. The structure prioritizes authorization independence and simplifies security rules.  Authorization Independence is achieved by avoiding `get()` calls in rules. Path-based ownership is leveraged where applicable, and the membership map pattern is employed for collaborative access where appropriate. This design allows for atomic operations and straightforward debugging.\n\n*   `/users/{userId}`: Stores user profiles.  Access is restricted to the user themselves.\n*   `/users/{userId}/searchHistory/{searchHistoryId}`: Stores the search history of each user. Authorization rules ensure only the user can access their own search history.\n*   `/movies/{movieId}`: Stores movie information fetched from the external API (TMDB/OMDB). This collection is publicly readable.\n*   `/movies/{movieId}/reviews/{reviewId}`: Stores user reviews for each movie.  Reviews are associated with a user and a movie."
+    "reasoning": "The Firestore data structure is designed to support the ReelFinder application's features, including movie search, user authentication, reviews, and personalized recommendations. The structure prioritizes authorization independence and simplifies security rules.  Authorization Independence is achieved by avoiding `get()` calls in rules. Path-based ownership is leveraged where applicable, and the membership map pattern is employed for collaborative access where appropriate. This design allows for atomic operations and straightforward debugging.\n\n*   `/users/{userId}`: Stores user profiles.  Access is restricted to the user themselves.\n*   `/users/{userId}/searchHistory/{searchHistoryId}`: Stores the search history of each user. Authorization rules ensure only the user can access their own search history.\n*   `/movies/{movieId}`: Stores movie information fetched from the external API (TMDB/OMDB). This collection is publicly readable.\n*   `/movies/{movieId}/reviews/{reviewId}`: Stores user reviews for each movie.  Reviews are associated with a user and a movie.\n*   `/watchProviders/{watchProviderId}`: Caches watch provider information from the TMDB API to reduce latency and API usage. This collection is publicly readable but only writable from the server-side API route."
   }
 }
