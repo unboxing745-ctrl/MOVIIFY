@@ -6,9 +6,9 @@ export async function GET(request: NextRequest) {
   const path = searchParams.get('path');
   const tmdbApiKey = process.env.TMDB_API_KEY;
 
-  if (!tmdbApiKey || tmdbApiKey === 'YOUR_TMDB_API_KEY_HERE') {
+  if (!tmdbApiKey) {
     return NextResponse.json(
-      { error: 'TMDB API key is not configured. Please add your key to the .env.local file.' },
+      { error: 'TMDB API key is not configured.' },
       { status: 500 }
     );
   }
@@ -36,18 +36,18 @@ export async function GET(request: NextRequest) {
 
     if (!response.ok) {
       const errorData = await response.json();
-      return NextResponse.json(
-        { error: 'Failed to fetch data from TMDB', details: errorData },
-        { status: response.status }
-      );
+      console.error('TMDB API Error:', errorData);
+      throw new Error(`Failed to fetch from TMDB: ${response.statusText}`);
     }
-
-    const data = await response.json();
-    return NextResponse.json(data);
+    
+    return response.json();
   } catch (error) {
-    return NextResponse.json(
-      { error: 'An unexpected error occurred.' },
-      { status: 500 }
-    );
+    console.error('Error fetching data from TMDB proxy:', error);
+    // In case of a network or other fetch error, we return a default/empty structure
+    // to prevent the app from crashing. Adjust this as needed.
+    if (path.includes('search') || path.includes('discover')) {
+        return NextResponse.json({ results: [], page: 1, total_pages: 1, total_results: 0 });
+    }
+    return NextResponse.json({ results: [] });
   }
 }
