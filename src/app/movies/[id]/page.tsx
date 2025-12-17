@@ -17,6 +17,9 @@ type DetailData = (MovieDetails | TVDetails) & { credits: Credits; 'watch/provid
 
 type UnifiedProvider = WatchProviderDetails & { type: 'Stream' | 'Rent' | 'Buy' };
 
+type GroupedProvider = WatchProviderDetails & { types: ('Stream' | 'Rent' | 'Buy')[] };
+
+
 export default function MovieDetailPage() {
   const params = useParams();
   const id = params.id as string;
@@ -98,22 +101,36 @@ export default function MovieDetailPage() {
 
   const watchProviderResults = details['watch/providers']?.results;
   
-  const unifiedProviders: UnifiedProvider[] = [];
   let watchLink = '#';
+  const groupedProviders = new Map<number, GroupedProvider>();
 
   if (watchProviderResults) {
     Object.values(watchProviderResults).forEach(countryProviders => {
       if (countryProviders.link && watchLink === '#') {
         watchLink = countryProviders.link;
       }
-      countryProviders.flatrate?.forEach(p => unifiedProviders.push({ ...p, type: 'Stream' }));
-      countryProviders.rent?.forEach(p => unifiedProviders.push({ ...p, type: 'Rent' }));
-      countryProviders.buy?.forEach(p => unifiedProviders.push({ ...p, type: 'Buy' }));
+      
+      const processProviders = (providers: WatchProviderDetails[] | undefined, type: 'Stream' | 'Rent' | 'Buy') => {
+        providers?.forEach(p => {
+          if (groupedProviders.has(p.provider_id)) {
+            const existing = groupedProviders.get(p.provider_id)!;
+            if (!existing.types.includes(type)) {
+              existing.types.push(type);
+            }
+          } else {
+            groupedProviders.set(p.provider_id, { ...p, types: [type] });
+          }
+        });
+      };
+
+      processProviders(countryProviders.flatrate, 'Stream');
+      processProviders(countryProviders.rent, 'Rent');
+      processProviders(countryProviders.buy, 'Buy');
     });
   }
 
-  const uniqueProviders = Array.from(new Map(unifiedProviders.map(p => [`${p.provider_id}-${p.type}`, p])).values());
-  uniqueProviders.sort((a,b) => (a.display_priority || Infinity) - (b.display_priority || Infinity));
+  const uniqueProviders = Array.from(groupedProviders.values());
+  uniqueProviders.sort((a, b) => (a.display_priority || Infinity) - (b.display_priority || Infinity));
 
 
   return (
@@ -204,7 +221,7 @@ export default function MovieDetailPage() {
                 <div className="grid gap-4 md:grid-cols-2">
                     {uniqueProviders.map(p => (
                          <a 
-                           key={`${p.provider_id}-${p.type}`} 
+                           key={p.provider_id} 
                            href={watchLink} 
                            target="_blank" 
                            rel="noopener noreferrer"
@@ -213,7 +230,11 @@ export default function MovieDetailPage() {
                             {p.provider_name === 'Netflix' ? <NetflixLogo className="h-10 w-10 shrink-0" />
                             : <Image src={getImageUrl(p.logo_path, 'w92')} alt={p.provider_name} width={40} height={40} className="rounded-md shrink-0" />}
                             <span className="flex-grow font-semibold">{p.provider_name}</span>
-                             <Badge variant={p.type === 'Stream' ? 'default' : 'secondary'} className="shrink-0">{p.type}</Badge>
+                             <div className="flex gap-1 shrink-0">
+                              {p.types.map(type => (
+                                <Badge key={type} variant={type === 'Stream' ? 'default' : 'secondary'}>{type}</Badge>
+                              ))}
+                             </div>
                          </a>
                     ))}
                 </div>
@@ -248,3 +269,4 @@ export default function MovieDetailPage() {
     </div>
   );
 }
+
