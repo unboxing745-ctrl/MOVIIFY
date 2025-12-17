@@ -1,7 +1,5 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
-import { initializeFirebase } from '@/firebase'; // Assume this initializes admin or a server-side instance
 import { fetchTMDb } from '@/lib/tmdb';
 import type { WatchProviders } from '@/lib/types';
 
@@ -28,29 +26,15 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Missing or invalid tmdbId or type' }, { status: 400 });
     }
 
-    const { firestore } = initializeFirebase();
-    const cacheDocRef = doc(firestore, 'watchProviders', `${type}_${tmdbId}`);
-
     try {
-        // 1. Check Firestore cache first
-        const cacheSnapshot = await getDoc(cacheDocRef);
-        if (cacheSnapshot.exists()) {
-            const data = cacheSnapshot.data();
-            const age = Date.now() - (data.cachedAt?.toMillis() || 0);
-            // Cache is valid for 1 day
-            if (age < 1000 * 60 * 60 * 24) {
-                 return NextResponse.json(data.providers);
-            }
-        }
-
-        // 2. Fetch from TMDB if not in cache or cache is stale
+        // Fetch directly from TMDB
         const data = await fetchTMDb<{ results: WatchProviders }>(`${type}/${tmdbId}/watch/providers`);
         
         if (!data || !data.results) {
             throw new Error('Invalid data from TMDB API');
         }
 
-        // 3. Region fallback logic
+        // Region fallback logic
         const userRegion = userRegionOverride || getRegionFromRequest(request);
         const preferredRegions = [userRegion, 'IN', 'TR', 'US', 'GB'];
         let finalProviders: WatchProviders['results'] | null = null;
@@ -62,15 +46,9 @@ export async function GET(request: NextRequest) {
             }
         }
         
-        const providersToCache = finalProviders || {};
-
-        // 4. Cache the result in Firestore
-        await setDoc(cacheDocRef, {
-            providers: providersToCache,
-            cachedAt: new Date(),
-        });
+        const providersToReturn = finalProviders || {};
         
-        return NextResponse.json(providersToCache);
+        return NextResponse.json(providersToReturn);
 
     } catch (error) {
         console.error('Error in getWatchProviders:', error);
