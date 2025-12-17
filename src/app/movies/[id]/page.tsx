@@ -166,7 +166,7 @@ export default function MovieDetailPage() {
                         </div>
                         <div className="flex items-center gap-2">
                             <Star className="w-5 h-5 text-amber-400" />
-                            <span>{details.vote_average.toFixed(1)}</span>
+                            <span>{typeof details.vote_average === 'number' ? details.vote_average.toFixed(1) : 'N/A'}</span>
                         </div>
 
                         <div className="flex items-center flex-wrap gap-2">
@@ -275,4 +275,5 @@ export default function MovieDetailPage() {
 
     </div>
   );
-}
+
+    
