@@ -1,4 +1,5 @@
 /**
+/**
  * This ruleset enforces a security model for the "MyMovieFinder" application.
  *
  * Core Philosophy:

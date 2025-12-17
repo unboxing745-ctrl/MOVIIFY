@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -25,6 +26,7 @@ import { useAuth, useUser } from '@/firebase';
 import { initiateEmailSignIn } from '@/firebase/non-blocking-login';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
@@ -35,6 +37,7 @@ export default function LoginPage() {
   const auth = useAuth();
   const { user } = useUser();
   const router = useRouter();
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -51,7 +54,7 @@ export default function LoginPage() {
   }, [user, router]);
 
   const onSubmit = (values: z.infer<typeof loginSchema>) => {
-    initiateEmailSignIn(auth, values.email, values.password);
+    initiateEmailSignIn(auth, values.email, values.password, toast);
   };
 
   return (
