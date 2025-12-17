@@ -7,8 +7,9 @@ export async function GET(request: NextRequest) {
   const tmdbApiKey = process.env.TMDB_API_KEY;
 
   if (!tmdbApiKey) {
+    // This will now be the active path since the key was removed.
     return NextResponse.json(
-      { error: 'TMDB API key is not configured.' },
+      { error: 'TMDB API key is not configured. Please add it to your environment variables.' },
       { status: 500 }
     );
   }
@@ -40,11 +41,11 @@ export async function GET(request: NextRequest) {
       throw new Error(`Failed to fetch from TMDB: ${response.statusText}`);
     }
     
-    return response.json();
+    const data = await response.json();
+    return NextResponse.json(data);
+
   } catch (error) {
     console.error('Error fetching data from TMDB proxy:', error);
-    // In case of a network or other fetch error, we return a default/empty structure
-    // to prevent the app from crashing. Adjust this as needed.
     if (path.includes('search') || path.includes('discover')) {
         return NextResponse.json({ results: [], page: 1, total_pages: 1, total_results: 0 });
     }
