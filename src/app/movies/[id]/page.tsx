@@ -93,10 +93,10 @@ export default function MovieDetailPage() {
     (v) => v.type === 'Trailer' && v.site === 'YouTube'
   );
 
-  const availableLanguages = details.spoken_languages.map(l => l.english_name).join(', ');
+  const availableLanguages = details.spoken_languages?.map(l => l.english_name).join(', ') || '';
 
   const availableSubtitles = [
-      ...details.spoken_languages.slice(0, 2).map(l => l.english_name),
+      ...(details.spoken_languages || []).slice(0, 2).map(l => l.english_name),
       'English',
       'Spanish',
       'French'
