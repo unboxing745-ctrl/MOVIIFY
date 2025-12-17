@@ -3,8 +3,9 @@ import { MovieResult } from './types';
 
 function getBaseUrl() {
   if (typeof window !== 'undefined') {
-    // Client-side: Construct a full URL using the window's origin.
-    return `${window.location.origin}/api/tmdb`;
+    // Client-side: Use a relative path which the browser will resolve
+    // against the current origin.
+    return '/api/tmdb';
   }
   // Server-side: Use environment variables to construct the full URL.
   const host = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_VERCEL_URL || 'localhost:9002';
@@ -17,7 +18,7 @@ export async function fetchTMDb<T>(
   params: Record<string, string> = {}
 ): Promise<T> {
   const baseUrl = getBaseUrl();
-  const url = new URL(baseUrl);
+  const url = new URL(baseUrl, getBaseUrl().startsWith('http') ? undefined : window.location.origin);
   url.searchParams.append('path', path);
   for (const [key, value] of Object.entries(params)) {
     url.searchParams.append(key, value);
