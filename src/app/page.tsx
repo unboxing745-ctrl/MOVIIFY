@@ -1,4 +1,4 @@
-'use client'; // ensure this page is treated as a client component
+'use client'; // Client component
 
 import { Suspense } from 'react';
 import { Sparkles, TrendingUp } from 'lucide-react';
@@ -30,9 +30,7 @@ export default function Home() {
           <div className="space-y-8">
             <div className="flex items-center gap-3">
               <TrendingUp className="w-8 h-8 text-primary" />
-              <h2 className="text-3xl font-bold font-headline">
-                Trending
-              </h2>
+              <h2 className="text-3xl font-bold font-headline">Trending</h2>
             </div>
             <Suspense
               fallback={
@@ -47,9 +45,7 @@ export default function Home() {
           <div className="space-y-8">
             <div className="flex items-center gap-3">
               <Sparkles className="w-8 h-8 text-primary" />
-              <h2 className="text-3xl font-bold font-headline">
-                Recommendation
-              </h2>
+              <h2 className="text-3xl font-bold font-headline">Recommendation</h2>
             </div>
             <Suspense
               fallback={
@@ -64,4 +60,3 @@ export default function Home() {
     </div>
   );
 }
-
