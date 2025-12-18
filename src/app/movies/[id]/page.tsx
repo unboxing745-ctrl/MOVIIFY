@@ -1,6 +1,7 @@
 
 'use client';
 
+import { Suspense } from 'react';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Star, Youtube, Clapperboard, CalendarIcon, User, Video, Captions, Languages } from 'lucide-react';
@@ -14,7 +15,8 @@ import WhereToWatch from '@/components/movies/WhereToWatch';
 
 type DetailData = (MovieDetails | TVDetails) & { credits: Credits };
 
-export default function MovieDetailPage() {
+
+function MovieDetailClient() {
   const params = useParams();
   const id = params.id as string;
   const searchParams = useSearchParams();
@@ -201,4 +203,46 @@ export default function MovieDetailPage() {
 
     </div>
   );
+}
+
+export default function MovieDetailPage() {
+  return (
+    <Suspense fallback={<MovieDetailSkeleton />}>
+      <MovieDetailClient />
+    </Suspense>
+  );
+}
+
+
+function MovieDetailSkeleton() {
+    return (
+        <div className="container mx-auto px-4 py-8 pt-28">
+            <div className="grid md:grid-cols-[300px_1fr] gap-8">
+                <Skeleton className="aspect-[2/3] w-full rounded-lg" />
+                <div className="space-y-6">
+                    <Skeleton className="h-10 w-3/4" />
+                    <div className="flex flex-wrap items-center gap-4">
+                        <Skeleton className="h-6 w-20" />
+                        <Skeleton className="h-6 w-24" />
+                        <Skeleton className="h-6 w-24" />
+                    </div>
+                    <Skeleton className="h-24 w-full" />
+                    <div className="grid grid-cols-2 gap-8">
+                        <div className='space-y-2'>
+                            <Skeleton className="h-6 w-32" />
+                            <Skeleton className="h-5 w-40" />
+                        </div>
+                        <div className='space-y-2'>
+                            <Skeleton className="h-6 w-32" />
+                            <Skeleton className="h-16 w-full" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+             <div className='mt-12 space-y-4'>
+                <Skeleton className="h-8 w-40" />
+                <Skeleton className="aspect-video w-full" />
+            </div>
+        </div>
+    );
 }
